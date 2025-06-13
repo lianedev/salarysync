@@ -60,7 +60,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Kenya Payroll Calculator
+                SalarySync
               </h1>
               <p className="text-gray-600">Welcome back, {user.companyName}</p>
             </div>

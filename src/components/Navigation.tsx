@@ -26,9 +26,9 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="bg-blue-600 text-white p-2 rounded-lg">
-              <span className="font-bold text-lg">KPH</span>
+              <span className="font-bold text-lg">SS</span>
             </div>
-            <span className="font-bold text-xl text-gray-900">Kenya Payroll Hub</span>
+            <span className="font-bold text-xl text-gray-900">SalarySync</span>
           </Link>
 
           {/* Desktop Navigation */}
