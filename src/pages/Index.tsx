@@ -6,6 +6,7 @@ import { Calculator, Users, FileText, DollarSign } from "lucide-react";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 import Dashboard from "@/components/Dashboard";
+import Navigation from "@/components/Navigation";
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,6 +41,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+      <Navigation 
+        onLoginClick={() => setShowSignup(false)}
+        onSignupClick={() => setShowSignup(true)}
+      />
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-16">
