@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,8 +76,8 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
         description: "Please check your email and click the verification link to complete your registration.",
       });
       
-      // Navigate to confirm email page
-      navigate("/confirm-email");
+      // Navigate to confirm email page with email in state
+      navigate("/confirm-email", { state: { email: formData.email } });
 
     } catch (error: any) {
       console.error("Signup error:", error);

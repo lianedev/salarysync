@@ -1,14 +1,38 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Mail, ArrowLeft, CheckCircle, Clock } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const ConfirmEmail = () => {
   const [isVerified, setIsVerified] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+  const [countdown, setCountdown] = useState(300); // 5 minutes in seconds
+  const [isResending, setIsResending] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get email from location state (passed from signup)
+  const email = location.state?.email;
+
+  useEffect(() => {
+    // Start countdown timer
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setCanResend(true);
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     // Check if user is already verified and redirect
@@ -52,6 +76,80 @@ const ConfirmEmail = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleResendEmail = async () => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Email address not found. Please go back and sign up again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResending(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('resend-verification-email', {
+        body: { email }
+      });
+
+      if (error) {
+        toast({
+          title: "Resend Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!data?.success) {
+        toast({
+          title: "Resend Failed",
+          description: data?.error || "Unknown error occurred",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Email Sent!",
+        description: "A new verification email has been sent to your inbox.",
+      });
+
+      // Reset countdown
+      setCanResend(false);
+      setCountdown(300);
+      
+      // Start new countdown
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+    } catch (error: any) {
+      console.error("Resend error:", error);
+      toast({
+        title: "Resend Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm">
@@ -75,17 +173,43 @@ const ConfirmEmail = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {!isVerified && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Mail className="h-4 w-4 md:h-5 md:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1 text-sm md:text-base">Verification Email Sent!</h3>
-                  <p className="text-xs md:text-sm text-blue-800">
-                    Please check your email and click the verification link to complete your account setup.
-                  </p>
+            <>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Mail className="h-4 w-4 md:h-5 md:w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-blue-900 mb-1 text-sm md:text-base">Verification Email Sent!</h3>
+                    <p className="text-xs md:text-sm text-blue-800">
+                      Please check your email and click the verification link to complete your account setup.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              {email && (
+                <div className="text-center space-y-4">
+                  <div className="text-sm text-gray-600">
+                    Didn't receive the email? You can request a new one.
+                  </div>
+                  
+                  {!canResend ? (
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                      <Clock className="h-4 w-4" />
+                      <span>Resend available in {formatTime(countdown)}</span>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={handleResendEmail}
+                      disabled={isResending}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {isResending ? "Sending..." : "Resend Verification Email"}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
           )}
 
           {isVerified && (

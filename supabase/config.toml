@@ -38,3 +38,6 @@ enable_signup = true
 
 [functions.send-verification-email]
 verify_jwt = false
+
+[functions.resend-verification-email]
+verify_jwt = false
