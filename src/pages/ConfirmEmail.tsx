@@ -4,15 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ConfirmEmail = () => {
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resent, setResent] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const navigate = useNavigate();
 
   const handleResendConfirmation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +54,7 @@ const ConfirmEmail = () => {
         setResent(true);
         toast({
           title: "Confirmation Email Sent",
-          description: "Please check your email for the confirmation link.",
+          description: "Please check your email for the confirmation link and 6-digit code.",
         });
       }
     } catch (error: any) {
@@ -65,6 +69,64 @@ const ConfirmEmail = () => {
     setLoading(false);
   };
 
+  const handleVerifyOtp = async () => {
+    if (!email || !otp) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both your email and the 6-digit code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (otp.length !== 6) {
+      toast({
+        title: "Invalid Code",
+        description: "Please enter the complete 6-digit code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVerifyingOtp(true);
+
+    try {
+      console.log("Attempting to verify OTP:", { email, otp });
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'signup'
+      });
+
+      console.log("OTP verification response:", { data, error });
+
+      if (error) {
+        toast({
+          title: "Verification Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Email Confirmed!",
+          description: "Your account has been verified successfully.",
+        });
+        // Redirect to dashboard or home page
+        navigate("/");
+      }
+    } catch (error: any) {
+      console.error("Unexpected error during OTP verification:", error);
+      toast({
+        title: "Verification Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    setVerifyingOtp(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm">
@@ -74,18 +136,70 @@ const ConfirmEmail = () => {
           </div>
           <CardTitle className="text-2xl">Confirm Your Email</CardTitle>
           <CardDescription className="text-gray-600">
-            We've sent a confirmation link to your email. Click the link to activate your account.
+            We've sent a confirmation link and 6-digit code to your email. Use either method to activate your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">Next Steps:</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">Two Ways to Confirm:</h3>
             <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
-              <li>Check your email inbox</li>
-              <li>Look for an email from Kenya Payroll Calculator</li>
-              <li>Click the confirmation link</li>
-              <li>Return here to log in</li>
+              <li>Click the confirmation link in your email, OR</li>
+              <li>Enter the 6-digit code below</li>
             </ol>
+          </div>
+
+          {/* OTP Verification Section */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email-for-otp">Email Address</Label>
+              <Input
+                id="email-for-otp"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="otp">6-Digit Code</Label>
+              <div className="flex justify-center mt-2">
+                <InputOTP
+                  value={otp}
+                  onChange={(value) => setOtp(value)}
+                  maxLength={6}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleVerifyOtp} 
+              className="w-full" 
+              disabled={verifyingOtp || !email || otp.length !== 6}
+            >
+              {verifyingOtp ? "Verifying..." : "Verify Code"}
+            </Button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">
+                Or resend email
+              </span>
+            </div>
           </div>
 
           <div className="text-center">
@@ -111,18 +225,7 @@ const ConfirmEmail = () => {
             </div>
           ) : (
             <form onSubmit={handleResendConfirmation} className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading} variant="outline">
                 {loading ? "Sending..." : "Resend Confirmation Email"}
               </Button>
             </form>
