@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface SignupFormProps {
   onSignup: (user: any) => void;
@@ -21,6 +21,7 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     phoneNumber: "",
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,11 +57,12 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
           variant: "destructive",
         });
       } else if (data.user) {
-        onSignup(data.user);
         toast({
           title: "Account Created",
           description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}! Please check your email to verify your account.`,
         });
+        // Redirect to confirmation page
+        navigate("/confirm-email");
       }
     } catch (error: any) {
       toast({
