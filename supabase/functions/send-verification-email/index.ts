@@ -32,6 +32,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Email and password are required');
     }
 
+    // Get the origin from the request to determine the correct redirect URL
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://testpayrol.netlify.app';
+    const redirectUrl = `${origin}/`;
+
+    console.log(`Using redirect URL: ${redirectUrl}`);
+
     // Create user with email confirmation required
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email,
@@ -40,7 +46,9 @@ const handler = async (req: Request): Promise<Response> => {
       user_metadata: {
         company_name: companyName,
         phone_number: phoneNumber,
-      }
+      },
+      // Set the email redirect URL
+      email_redirect_to: redirectUrl
     });
 
     if (authError) {
