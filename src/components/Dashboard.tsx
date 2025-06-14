@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,17 +61,19 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       const { data, error } = await supabase
         .from('employees')
         .insert([{
-          ...employeeData,
           user_id: user.id,
-          employeeId: employeeData.employeeId,
-          firstName: employeeData.firstName,
-          lastName: employeeData.lastName,
-          phoneNumber: employeeData.phoneNumber,
-          basicSalary: employeeData.basicSalary,
-          houseAllowance: employeeData.houseAllowance,
-          transportAllowance: employeeData.transportAllowance,
-          medicalAllowance: employeeData.medicalAllowance,
-          otherAllowances: employeeData.otherAllowances,
+          employee_id: employeeData.employeeId,
+          first_name: employeeData.firstName,
+          last_name: employeeData.lastName,
+          email: employeeData.email,
+          phone_number: employeeData.phoneNumber,
+          position: employeeData.position,
+          department: employeeData.department,
+          basic_salary: employeeData.basicSalary,
+          house_allowance: employeeData.houseAllowance,
+          transport_allowance: employeeData.transportAllowance,
+          medical_allowance: employeeData.medicalAllowance,
+          other_allowances: employeeData.otherAllowances,
         }])
         .select()
         .single();
@@ -94,11 +95,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         lastName: data.last_name,
         employeeId: data.employee_id,
         phoneNumber: data.phone_number,
-        basicSalary: parseFloat(data.basic_salary || '0'),
-        houseAllowance: parseFloat(data.house_allowance || '0'),
-        transportAllowance: parseFloat(data.transport_allowance || '0'),
-        medicalAllowance: parseFloat(data.medical_allowance || '0'),
-        otherAllowances: parseFloat(data.other_allowances || '0'),
+        basicSalary: parseFloat(String(data.basic_salary || '0')),
+        houseAllowance: parseFloat(String(data.house_allowance || '0')),
+        transportAllowance: parseFloat(String(data.transport_allowance || '0')),
+        medicalAllowance: parseFloat(String(data.medical_allowance || '0')),
+        otherAllowances: parseFloat(String(data.other_allowances || '0')),
       };
 
       setEmployees(prev => [transformedEmployee, ...prev]);
@@ -203,11 +204,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     lastName: emp.last_name || emp.lastName,
     employeeId: emp.employee_id || emp.employeeId,
     phoneNumber: emp.phone_number || emp.phoneNumber,
-    basicSalary: parseFloat(emp.basic_salary || emp.basicSalary || '0'),
-    houseAllowance: parseFloat(emp.house_allowance || emp.houseAllowance || '0'),
-    transportAllowance: parseFloat(emp.transport_allowance || emp.transportAllowance || '0'),
-    medicalAllowance: parseFloat(emp.medical_allowance || emp.medicalAllowance || '0'),
-    otherAllowances: parseFloat(emp.other_allowances || emp.otherAllowances || '0'),
+    basicSalary: parseFloat(String(emp.basic_salary || emp.basicSalary || '0')),
+    houseAllowance: parseFloat(String(emp.house_allowance || emp.houseAllowance || '0')),
+    transportAllowance: parseFloat(String(emp.transport_allowance || emp.transportAllowance || '0')),
+    medicalAllowance: parseFloat(String(emp.medical_allowance || emp.medicalAllowance || '0')),
+    otherAllowances: parseFloat(String(emp.other_allowances || emp.otherAllowances || '0')),
   }));
 
   return (
