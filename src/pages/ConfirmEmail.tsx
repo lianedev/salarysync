@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 const ConfirmEmail = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resent, setResent] = useState(false);
 
   const handleResendConfirmation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +28,17 @@ const ConfirmEmail = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resend({
+      console.log("Attempting to resend confirmation email to:", email);
+      
+      const { data, error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
         }
       });
+
+      console.log("Resend response:", { data, error });
 
       if (error) {
         toast({
@@ -42,12 +47,14 @@ const ConfirmEmail = () => {
           variant: "destructive",
         });
       } else {
+        setResent(true);
         toast({
           title: "Confirmation Email Sent",
           description: "Please check your email for the confirmation link.",
         });
       }
     } catch (error: any) {
+      console.error("Unexpected error during resend:", error);
       toast({
         title: "Resend Failed",
         description: "An unexpected error occurred. Please try again.",
@@ -75,7 +82,7 @@ const ConfirmEmail = () => {
             <h3 className="font-semibold text-blue-900 mb-2">Next Steps:</h3>
             <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
               <li>Check your email inbox</li>
-              <li>Look for an email from SalarySync</li>
+              <li>Look for an email from Kenya Payroll Calculator</li>
               <li>Click the confirmation link</li>
               <li>Return here to log in</li>
             </ol>
@@ -87,22 +94,39 @@ const ConfirmEmail = () => {
             </p>
           </div>
 
-          <form onSubmit={handleResendConfirmation} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
+          {resent ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <h3 className="font-semibold text-green-800 mb-2">Email Sent!</h3>
+              <p className="text-sm text-green-700">
+                A new confirmation email has been sent to {email}. 
+                Please check your inbox and spam folder.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setResent(false)}
+              >
+                Send Another Email
+              </Button>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending..." : "Resend Confirmation Email"}
-            </Button>
-          </form>
+          ) : (
+            <form onSubmit={handleResendConfirmation} className="space-y-4">
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Resend Confirmation Email"}
+              </Button>
+            </form>
+          )}
 
           <div className="text-center">
             <Link 
