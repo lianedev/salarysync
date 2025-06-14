@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,13 +57,20 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
           description: error.message,
           variant: "destructive",
         });
-      } else if (data.user) {
+      } else if (data.user && !data.session) {
+        // User needs to confirm email
         toast({
           title: "Account Created",
           description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}! Please check your email to verify your account.`,
         });
-        // Redirect to confirmation page
         navigate("/confirm-email");
+      } else if (data.session) {
+        // User is immediately signed in (email confirmation disabled)
+        toast({
+          title: "Account Created",
+          description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}!`,
+        });
+        // The auth state change listener in Index.tsx will handle the redirect
       }
     } catch (error: any) {
       toast({

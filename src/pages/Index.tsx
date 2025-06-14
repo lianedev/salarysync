@@ -7,19 +7,77 @@ import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
 import Dashboard from "@/components/Dashboard";
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
+    // Check if user is logged in from localStorage first
     const savedUser = localStorage.getItem('payroll_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
       setIsLoggedIn(true);
+      setLoading(false);
+      return;
     }
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // User has successfully signed in (including after email confirmation)
+          const userData = {
+            id: session.user.id,
+            email: session.user.email,
+            companyName: session.user.user_metadata?.company_name || 'Your Company',
+            phoneNumber: session.user.user_metadata?.phone_number || '',
+          };
+          
+          setUser(userData);
+          setIsLoggedIn(true);
+          localStorage.setItem('payroll_user', JSON.stringify(userData));
+          
+          toast({
+            title: "Welcome!",
+            description: "You have successfully logged in.",
+          });
+        } else if (event === 'SIGNED_OUT') {
+          // User signed out
+          setUser(null);
+          setIsLoggedIn(false);
+          localStorage.removeItem('payroll_user');
+          localStorage.removeItem('employees');
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          companyName: session.user.user_metadata?.company_name || 'Your Company',
+          phoneNumber: session.user.user_metadata?.phone_number || '',
+        };
+        
+        setUser(userData);
+        setIsLoggedIn(true);
+        localStorage.setItem('payroll_user', JSON.stringify(userData));
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = (userData: any) => {
@@ -28,17 +86,41 @@ const Index = () => {
     localStorage.setItem('payroll_user', JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setIsLoggedIn(false);
-    localStorage.removeItem('payroll_user');
-    localStorage.removeItem('employees');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsLoggedIn(false);
+      localStorage.removeItem('payroll_user');
+      localStorage.removeItem('employees');
+      
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  if (isLoggedIn) {
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show dashboard if user is logged in
+  if (isLoggedIn && user) {
     return <Dashboard user={user} onLogout={handleLogout} />;
   }
 
+  // Show landing page with auth forms if not logged in
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
       <Navigation 
