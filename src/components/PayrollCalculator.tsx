@@ -2,10 +2,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus } from "lucide-react";
-import PayrollResults from "./PayrollResults";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calculator, Download, FileText } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface PayrollCalculatorProps {
   employees: any[];
@@ -13,11 +12,14 @@ interface PayrollCalculatorProps {
 }
 
 const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculatorProps) => {
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [payrollData, setPayrollData] = useState(null);
+  const [payrollResults, setPayrollResults] = useState<any[]>([]);
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  // Kenyan tax calculation functions
-  const calculatePAYE = (taxableIncome: number) => {
+  // PAYE calculation with progressive tax bands
+  const calculatePAYE = (grossSalary: number) => {
+    const personalRelief = 2400;
+    const taxableIncome = Math.max(0, grossSalary - personalRelief);
+    
     let paye = 0;
     
     if (taxableIncome <= 24000) {
@@ -35,116 +37,201 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     return Math.max(0, paye);
   };
 
-  const calculateNSSF = (pensionablePay: number) => {
-    const tier1 = Math.min(pensionablePay, 7000);
-    const tier2 = Math.min(Math.max(pensionablePay - 7000, 0), 29000);
+  // NSSF calculation with updated tiers
+  const calculateNSSF = (basicSalary: number) => {
+    // Tier 1: 6% of salary up to Ksh 8,000 (max Ksh 480)
+    const tier1 = Math.min(basicSalary, 8000);
+    const tier1Contribution = Math.min(tier1 * 0.06, 480);
     
-    return (tier1 * 0.06) + (tier2 * 0.06);
+    // Tier 2: 6% of salary above Ksh 8,000 up to Ksh 36,000 (max Ksh 3,840 for the excess)
+    const tier2 = Math.min(Math.max(basicSalary - 8000, 0), 28000);
+    const tier2Contribution = Math.min(tier2 * 0.06, 3840);
+    
+    return tier1Contribution + tier2Contribution;
   };
 
-  const calculateNHIF = (grossSalary: number) => {
-    if (grossSalary <= 5999) return 150;
-    if (grossSalary <= 7999) return 300;
-    if (grossSalary <= 11999) return 400;
-    if (grossSalary <= 14999) return 500;
-    if (grossSalary <= 19999) return 600;
-    if (grossSalary <= 24999) return 750;
-    if (grossSalary <= 29999) return 850;
-    if (grossSalary <= 34999) return 900;
-    if (grossSalary <= 39999) return 950;
-    if (grossSalary <= 44999) return 1000;
-    if (grossSalary <= 49999) return 1100;
-    if (grossSalary <= 59999) return 1200;
-    if (grossSalary <= 69999) return 1300;
-    if (grossSalary <= 79999) return 1400;
-    if (grossSalary <= 89999) return 1500;
-    if (grossSalary <= 99999) return 1600;
-    return 1700;
+  // SHIF calculation
+  const calculateSHIF = (grossSalary: number) => {
+    const shifAmount = grossSalary * 0.0275;
+    return Math.max(shifAmount, 300); // Minimum Ksh 300
   };
 
+  // Housing Levy calculation
   const calculateHousingLevy = (grossSalary: number) => {
-    return grossSalary * 0.015; // 1.5% housing levy
+    return grossSalary * 0.015; // 1.5% of gross salary
   };
 
-  const calculatePayroll = () => {
-    const employee = employees.find(emp => emp.id === selectedEmployee);
-    if (!employee) return;
+  const calculateBulkPayroll = () => {
+    if (employees.length === 0) {
+      toast({
+        title: "No Employees",
+        description: "Please add employees before calculating payroll.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const basicSalary = employee.basicSalary || 0;
-    const houseAllowance = employee.houseAllowance || 0;
-    const transportAllowance = employee.transportAllowance || 0;
-    const medicalAllowance = employee.medicalAllowance || 0;
-    const otherAllowances = employee.otherAllowances || 0;
+    setIsCalculating(true);
 
-    const grossSalary = basicSalary + houseAllowance + transportAllowance + medicalAllowance + otherAllowances;
-    
-    // NSSF calculation
-    const nssf = calculateNSSF(basicSalary);
-    
-    // Taxable income (gross salary minus NSSF and personal relief)
-    const personalRelief = 2400; // Monthly personal relief
-    const taxableIncome = Math.max(0, grossSalary - nssf - personalRelief);
-    
-    // PAYE calculation
-    const paye = calculatePAYE(taxableIncome + personalRelief) - personalRelief;
-    
-    // NHIF calculation
-    const nhif = calculateNHIF(grossSalary);
-    
-    // Housing Levy calculation
-    const housingLevy = calculateHousingLevy(grossSalary);
-    
-    // Total deductions
-    const totalDeductions = paye + nssf + nhif + housingLevy;
-    
-    // Net salary
-    const netSalary = grossSalary - totalDeductions;
+    const results = employees.map((employee) => {
+      const basicSalary = employee.basicSalary || 0;
+      const houseAllowance = employee.houseAllowance || 0;
+      const transportAllowance = employee.transportAllowance || 0;
+      const medicalAllowance = employee.medicalAllowance || 0;
+      const otherAllowances = employee.otherAllowances || 0;
 
-    const results = {
-      employee,
-      grossSalary,
-      basicSalary,
-      allowances: {
-        house: houseAllowance,
-        transport: transportAllowance,
-        medical: medicalAllowance,
-        other: otherAllowances,
-        total: houseAllowance + transportAllowance + medicalAllowance + otherAllowances
-      },
-      deductions: {
-        paye: Math.round(paye),
-        nssf: Math.round(nssf),
-        nhif: nhif,
-        housingLevy: Math.round(housingLevy),
-        total: Math.round(totalDeductions)
-      },
-      netSalary: Math.round(netSalary),
-      taxableIncome: Math.round(taxableIncome)
-    };
+      const grossSalary = basicSalary + houseAllowance + transportAllowance + medicalAllowance + otherAllowances;
+      
+      // Calculate deductions
+      const nssf = calculateNSSF(basicSalary);
+      const paye = calculatePAYE(grossSalary - nssf);
+      const shif = calculateSHIF(grossSalary);
+      const housingLevy = calculateHousingLevy(grossSalary);
+      
+      const totalDeductions = paye + nssf + shif + housingLevy;
+      const netSalary = grossSalary - totalDeductions;
 
-    setPayrollData(results);
+      return {
+        employee,
+        grossSalary,
+        basicSalary,
+        allowances: {
+          house: houseAllowance,
+          transport: transportAllowance,
+          medical: medicalAllowance,
+          other: otherAllowances,
+          total: houseAllowance + transportAllowance + medicalAllowance + otherAllowances
+        },
+        deductions: {
+          paye: Math.round(paye),
+          nssf: Math.round(nssf),
+          shif: Math.round(shif),
+          housingLevy: Math.round(housingLevy),
+          total: Math.round(totalDeductions)
+        },
+        netSalary: Math.round(netSalary)
+      };
+    });
+
+    setPayrollResults(results);
+    setIsCalculating(false);
+
+    toast({
+      title: "Payroll Calculated",
+      description: `Payroll computed for ${employees.length} employees.`,
+    });
   };
 
-  if (employees.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Payroll Calculator</CardTitle>
-          <CardDescription>
-            No employees found. Please add employees first before calculating payroll.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {onSwitchToAddEmployee && (
-            <Button onClick={onSwitchToAddEmployee} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Employee
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
+  const exportToExcel = () => {
+    if (payrollResults.length === 0) {
+      toast({
+        title: "No Data",
+        description: "Please calculate payroll first before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create CSV content
+    const headers = [
+      "Employee ID", "Name", "Position", "Basic Salary", "Allowances", 
+      "Gross Salary", "PAYE", "NSSF", "SHIF", "Housing Levy", 
+      "Total Deductions", "Net Salary"
+    ];
+
+    const csvContent = [
+      headers.join(","),
+      ...payrollResults.map(result => [
+        result.employee.employeeId,
+        `"${result.employee.firstName} ${result.employee.lastName}"`,
+        `"${result.employee.position}"`,
+        result.basicSalary,
+        result.allowances.total,
+        result.grossSalary,
+        result.deductions.paye,
+        result.deductions.nssf,
+        result.deductions.shif,
+        result.deductions.housingLevy,
+        result.deductions.total,
+        result.netSalary
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `payroll-summary-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Successful",
+      description: "Payroll report downloaded as CSV file.",
+    });
+  };
+
+  const exportToPDF = () => {
+    if (payrollResults.length === 0) {
+      toast({
+        title: "No Data",
+        description: "Please calculate payroll first before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a printable version
+    const printContent = `
+PAYROLL SUMMARY REPORT
+Period: ${new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+Generated on: ${new Date().toLocaleDateString()}
+
+${payrollResults.map(result => `
+Employee: ${result.employee.firstName} ${result.employee.lastName}
+ID: ${result.employee.employeeId}
+Position: ${result.employee.position}
+
+EARNINGS:
+Basic Salary: KSh ${result.basicSalary.toLocaleString()}
+Allowances: KSh ${result.allowances.total.toLocaleString()}
+Gross Salary: KSh ${result.grossSalary.toLocaleString()}
+
+DEDUCTIONS:
+PAYE: KSh ${result.deductions.paye.toLocaleString()}
+NSSF: KSh ${result.deductions.nssf.toLocaleString()}
+SHIF: KSh ${result.deductions.shif.toLocaleString()}
+Housing Levy: KSh ${result.deductions.housingLevy.toLocaleString()}
+Total Deductions: KSh ${result.deductions.total.toLocaleString()}
+
+NET SALARY: KSh ${result.netSalary.toLocaleString()}
+${'='.repeat(50)}
+`).join('\n')}
+
+SUMMARY:
+Total Employees: ${payrollResults.length}
+Total Gross Salary: KSh ${payrollResults.reduce((sum, r) => sum + r.grossSalary, 0).toLocaleString()}
+Total Deductions: KSh ${payrollResults.reduce((sum, r) => sum + r.deductions.total, 0).toLocaleString()}
+Total Net Salary: KSh ${payrollResults.reduce((sum, r) => sum + r.netSalary, 0).toLocaleString()}
+    `;
+
+    const blob = new Blob([printContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payroll-report-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Successful",
+      description: "Payroll report downloaded as text file.",
+    });
+  };
+
+  const totalGrossSalary = payrollResults.reduce((sum, r) => sum + r.grossSalary, 0);
+  const totalDeductions = payrollResults.reduce((sum, r) => sum + r.deductions.total, 0);
+  const totalNetSalary = payrollResults.reduce((sum, r) => sum + r.netSalary, 0);
 
   return (
     <div className="space-y-6">
@@ -155,74 +242,135 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
             Payroll Calculator
           </CardTitle>
           <CardDescription>
-            Calculate PAYE, NSSF, NHIF, and Housing Levy for your employees
+            Calculate PAYE, NSSF, SHIF, and Housing Levy for all employees
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              Select Employee
-            </label>
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose an employee to calculate payroll" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.firstName} {employee.lastName} - {employee.position}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex gap-3">
+            <Button 
+              onClick={calculateBulkPayroll} 
+              className="flex-1"
+              disabled={isCalculating || employees.length === 0}
+            >
+              {isCalculating ? "Calculating..." : `Calculate Payroll (${employees.length} employees)`}
+            </Button>
+            {onSwitchToAddEmployee && (
+              <Button onClick={onSwitchToAddEmployee} variant="outline">
+                Add Employee
+              </Button>
+            )}
           </div>
 
-          {selectedEmployee && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold mb-2">Employee Details</h4>
-                {(() => {
-                  const employee = employees.find(emp => emp.id === selectedEmployee);
-                  return employee ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">Name:</span>
-                        <p className="font-medium">{employee.firstName} {employee.lastName}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Position:</span>
-                        <p className="font-medium">{employee.position}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Department:</span>
-                        <p className="font-medium">{employee.department}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Basic Salary:</span>
-                        <p className="font-medium">KSh {employee.basicSalary?.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ) : null;
-                })()}
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={calculatePayroll} className="flex-1 py-2">
-                  Calculate Payroll
-                </Button>
-                {onSwitchToAddEmployee && (
-                  <Button onClick={onSwitchToAddEmployee} variant="outline" className="flex items-center gap-2 py-2">
-                    <Plus className="h-4 w-4" />
-                    Add Employee
-                  </Button>
-                )}
-              </div>
+          {payrollResults.length > 0 && (
+            <div className="flex gap-2">
+              <Button onClick={exportToExcel} variant="outline" size="sm" className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Export Excel
+              </Button>
+              <Button onClick={exportToPDF} variant="outline" size="sm" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Export PDF
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {payrollData && <PayrollResults data={payrollData} />}
+      {payrollResults.length > 0 && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-green-600">Total Gross Salary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">KSh {totalGrossSalary.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-red-600">Total Deductions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">KSh {totalDeductions.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-blue-600">Total Net Salary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">KSh {totalNetSalary.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Payroll Summary Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payroll Summary</CardTitle>
+              <CardDescription>
+                Detailed breakdown for {payrollResults.length} employees
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead className="text-right">Basic Salary</TableHead>
+                      <TableHead className="text-right">Gross Salary</TableHead>
+                      <TableHead className="text-right">PAYE</TableHead>
+                      <TableHead className="text-right">NSSF</TableHead>
+                      <TableHead className="text-right">SHIF</TableHead>
+                      <TableHead className="text-right">Housing Levy</TableHead>
+                      <TableHead className="text-right">Total Deductions</TableHead>
+                      <TableHead className="text-right">Net Salary</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payrollResults.map((result, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {result.employee.firstName} {result.employee.lastName}
+                        </TableCell>
+                        <TableCell>{result.employee.position}</TableCell>
+                        <TableCell className="text-right">KSh {result.basicSalary.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.grossSalary.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.deductions.paye.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.deductions.nssf.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.deductions.shif.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.deductions.housingLevy.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">KSh {result.deductions.total.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-semibold">KSh {result.netSalary.toLocaleString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {employees.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Employees Found</CardTitle>
+            <CardDescription>
+              Please add employees first before calculating payroll.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {onSwitchToAddEmployee && (
+              <Button onClick={onSwitchToAddEmployee}>Add Employee</Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
