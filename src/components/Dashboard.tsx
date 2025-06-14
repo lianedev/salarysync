@@ -159,7 +159,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           </TabsContent>
 
           <TabsContent value="calculator">
-            <PayrollCalculator employees={employees} />
+            <PayrollCalculator 
+              employees={employees} 
+              onSwitchToAddEmployee={() => setActiveTab("add-employee")}
+            />
           </TabsContent>
         </Tabs>
       </div>

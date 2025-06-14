@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface SignupFormProps {
   onSignup: (user: any) => void;
@@ -20,6 +22,7 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     phoneNumber: "",
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,25 +38,51 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
       return;
     }
 
-    // Save user to localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const newUser = {
-      id: Date.now().toString(),
-      companyName: formData.companyName,
-      email: formData.email,
-      password: formData.password,
-      phoneNumber: formData.phoneNumber,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      // Create user account (without auto-confirming email)
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            company_name: formData.companyName,
+            phone_number: formData.phoneNumber,
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
 
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    onSignup(newUser);
-    toast({
-      title: "Account Created",
-      description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}!`,
-    });
+      if (error) {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data.user && !data.session) {
+        // User needs to verify email with OTP
+        toast({
+          title: "Account Created",
+          description: `Welcome ${formData.companyName}! Please verify your email to complete registration.`,
+        });
+        
+        // Store email in sessionStorage for the verification page
+        sessionStorage.setItem('signup_email', formData.email);
+        navigate("/confirm-email");
+      } else if (data.session) {
+        // User is immediately signed in (shouldn't happen with email confirmation required)
+        toast({
+          title: "Account Created",
+          description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}!`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Signup Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
 
     setLoading(false);
   };
