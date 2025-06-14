@@ -59,9 +59,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('OTP stored successfully:', otpData);
 
-    // Send email with OTP
+    // Send email with OTP using your Netlify domain
     const emailResponse = await resend.emails.send({
-      from: "SalarySync <onboarding@resend.dev>",
+      from: "SalarySync <noreply@testpayrol.netlify.app>",
       to: [email],
       subject: "Your Email Verification Code",
       html: `
