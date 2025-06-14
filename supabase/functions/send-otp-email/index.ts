@@ -61,13 +61,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email with OTP
     const emailResponse = await resend.emails.send({
-      from: "Kenya Payroll Hub <onboarding@resend.dev>",
+      from: "SalarySync <onboarding@resend.dev>",
       to: [email],
       subject: "Your Email Verification Code",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #2563eb; margin-bottom: 10px;">Kenya Payroll Hub</h1>
+            <h1 style="color: #2563eb; margin-bottom: 10px;">SalarySync</h1>
             <h2 style="color: #374151; margin-bottom: 20px;">Email Verification</h2>
           </div>
           
@@ -86,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="text-align: center; color: #6b7280; font-size: 14px;">
             <p>If you didn't request this verification code, please ignore this email.</p>
             <p style="margin-top: 20px;">
-              <strong>Kenya Payroll Hub</strong><br>
+              <strong>SalarySync</strong><br>
               Streamline your payroll processing with precision.
             </p>
           </div>
