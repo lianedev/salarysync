@@ -35,12 +35,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Using redirect URL: ${redirectUrl}`);
 
-    // Resend the verification email
-    const { error } = await supabase.auth.admin.generateLink({
+    // Use resend method to send verification email
+    const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email,
       options: {
-        redirectTo: redirectUrl
+        emailRedirectTo: redirectUrl
       }
     });
 
