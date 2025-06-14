@@ -36,11 +36,5 @@ refresh_token_rotation_enabled = true
 refresh_token_reuse_interval = 10
 enable_signup = true
 
-[functions.send-otp-email]
-verify_jwt = false
-
-[functions.verify-otp]
-verify_jwt = false
-
-[functions.complete-signup]
+[functions.send-verification-email]
 verify_jwt = false

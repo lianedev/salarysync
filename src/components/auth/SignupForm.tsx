@@ -39,53 +39,45 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     }
 
     try {
-      // First, send OTP email using our custom function
-      console.log("Sending OTP email for signup:", formData.email);
+      console.log("Creating user account:", formData.email);
       
-      const { data: otpData, error: otpError } = await supabase.functions.invoke('send-otp-email', {
+      const { data, error } = await supabase.functions.invoke('send-verification-email', {
         body: {
           email: formData.email,
-          type: 'signup'
+          password: formData.password,
+          companyName: formData.companyName,
+          phoneNumber: formData.phoneNumber,
         }
       });
 
-      console.log("OTP email response:", { otpData, otpError });
+      console.log("User creation response:", { data, error });
 
-      if (otpError) {
+      if (error) {
         toast({
-          title: "Failed to Send Verification Code",
-          description: otpError.message,
+          title: "Account Creation Failed",
+          description: error.message,
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      if (!otpData?.success) {
+      if (!data?.success) {
         toast({
-          title: "Failed to Send Verification Code",
-          description: otpData?.error || "Unknown error occurred",
+          title: "Account Creation Failed",
+          description: data?.error || "Unknown error occurred",
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
-
-      // Store signup data temporarily for after verification
-      sessionStorage.setItem('pending_signup', JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-        companyName: formData.companyName,
-        phoneNumber: formData.phoneNumber,
-      }));
 
       toast({
-        title: "Verification Code Sent",
-        description: `Please check your email for the 6-digit verification code to complete registration.`,
+        title: "Account Created!",
+        description: "Please check your email and click the verification link to complete your registration.",
       });
       
-      // Store email for the verification page
-      sessionStorage.setItem('signup_email', formData.email);
+      // Navigate to confirm email page
       navigate("/confirm-email");
 
     } catch (error: any) {
@@ -174,7 +166,7 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Sending Verification Code..." : "Create Account"}
+            {loading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
         <div className="mt-4 text-center">
