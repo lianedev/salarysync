@@ -29,9 +29,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Email is required');
     }
 
-    // Get the origin from the request to determine the correct redirect URL
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/$/, '') || 'https://testpayrol.netlify.app';
-    const redirectUrl = `${origin}/`;
+    // Use the production URL directly
+    const redirectUrl = 'https://testpayrol.netlify.app/';
 
     console.log(`Using redirect URL: ${redirectUrl}`);
 
