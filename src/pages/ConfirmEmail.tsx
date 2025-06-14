@@ -122,13 +122,13 @@ const ConfirmEmail = () => {
       } else if (data?.success) {
         toast({
           title: "Email Verified!",
-          description: "Your account has been verified successfully. Redirecting to dashboard...",
+          description: "Your account has been verified successfully. Redirecting...",
         });
         
         // Refresh the auth session to get the updated user
         await supabase.auth.refreshSession();
         
-        // Small delay to show success message, then redirect
+        // Small delay to show success message, then redirect to home
         setTimeout(() => {
           navigate("/");
         }, 1500);
