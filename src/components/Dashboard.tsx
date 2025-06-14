@@ -58,10 +58,28 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   const addEmployee = async (employeeData: any) => {
     try {
+      // Debug logging
+      console.log('Current user:', user);
+      console.log('Employee data being inserted:', employeeData);
+      console.log('User ID being used:', user?.id);
+
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
+      if (!session || !session.user) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to add employees.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('employees')
         .insert([{
-          user_id: user.id,
+          user_id: session.user.id, // Use session.user.id instead of user.id
           employee_id: employeeData.employeeId,
           first_name: employeeData.firstName,
           last_name: employeeData.lastName,
@@ -82,7 +100,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
         console.error('Error adding employee:', error);
         toast({
           title: "Error",
-          description: "Failed to add employee. Please try again.",
+          description: `Failed to add employee: ${error.message}`,
           variant: "destructive",
         });
         return;
