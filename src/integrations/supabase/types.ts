@@ -39,6 +39,63 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          basic_salary: number
+          created_at: string
+          department: string
+          email: string
+          employee_id: string
+          first_name: string
+          house_allowance: number
+          id: string
+          last_name: string
+          medical_allowance: number
+          other_allowances: number
+          phone_number: string
+          position: string
+          transport_allowance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          basic_salary?: number
+          created_at?: string
+          department: string
+          email: string
+          employee_id: string
+          first_name: string
+          house_allowance?: number
+          id?: string
+          last_name: string
+          medical_allowance?: number
+          other_allowances?: number
+          phone_number: string
+          position: string
+          transport_allowance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          basic_salary?: number
+          created_at?: string
+          department?: string
+          email?: string
+          employee_id?: string
+          first_name?: string
+          house_allowance?: number
+          id?: string
+          last_name?: string
+          medical_allowance?: number
+          other_allowances?: number
+          phone_number?: string
+          position?: string
+          transport_allowance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
