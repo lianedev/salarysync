@@ -73,17 +73,17 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-1 py-8 ">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid  grid-cols-4 ">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
-            <TabsTrigger value="add-employee">Add Employee</TabsTrigger>
+            <TabsTrigger value="add-employee">+ Employee</TabsTrigger>
             <TabsTrigger value="calculator">Calculator</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols- gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -133,13 +133,13 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   Common tasks you might want to perform
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex gap-4">
-                <Button onClick={() => setActiveTab("add-employee")} className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add New Employee
+              <CardContent className="flex gap-2">
+                <Button onClick={() => setActiveTab("add-employee")} className="flex items-center gap-1">
+                  <Plus className="p-0.5" />
+                  Add Employee
                 </Button>
-                <Button onClick={() => setActiveTab("calculator")} variant="outline" className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4" />
+                <Button onClick={() => setActiveTab("calculator")} variant="outline" className="flex items-center gap-1">
+                  <Calculator className="p-0.5" />
                   Calculate Payroll
                 </Button>
               </CardContent>
