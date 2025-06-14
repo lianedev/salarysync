@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,16 @@ const ConfirmEmail = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const navigate = useNavigate();
+
+  // Pre-populate email from signup process
+  useEffect(() => {
+    const signupEmail = sessionStorage.getItem('signup_email');
+    if (signupEmail) {
+      setEmail(signupEmail);
+      // Clear it from session storage
+      sessionStorage.removeItem('signup_email');
+    }
+  }, []);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
