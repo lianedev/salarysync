@@ -7,18 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Mail, ArrowLeft, AlertCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 const ConfirmEmail = () => {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resent, setResent] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const navigate = useNavigate();
 
-  const handleResendConfirmation = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast({
@@ -32,35 +32,36 @@ const ConfirmEmail = () => {
     setLoading(true);
 
     try {
-      console.log("Attempting to resend confirmation email to:", email);
+      console.log("Sending OTP to:", email);
       
-      const { data, error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
+      const { data, error } = await supabase.functions.invoke('send-otp-email', {
+        body: {
+          email: email,
+          type: otpSent ? 'resend' : 'signup'
         }
       });
 
-      console.log("Resend response:", { data, error });
+      console.log("Send OTP response:", { data, error });
 
       if (error) {
         toast({
-          title: "Resend Failed",
+          title: "Failed to Send Code",
           description: error.message,
           variant: "destructive",
         });
-      } else {
-        setResent(true);
+      } else if (data?.success) {
+        setOtpSent(true);
         toast({
-          title: "Confirmation Email Sent",
-          description: "Please check your email for the confirmation link. Note: 6-digit codes are not currently enabled.",
+          title: "Verification Code Sent",
+          description: "Please check your email for the 6-digit verification code.",
         });
+      } else {
+        throw new Error(data?.error || "Failed to send verification code");
       }
     } catch (error: any) {
-      console.error("Unexpected error during resend:", error);
+      console.error("Unexpected error during OTP send:", error);
       toast({
-        title: "Resend Failed",
+        title: "Failed to Send Code",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
@@ -91,12 +92,13 @@ const ConfirmEmail = () => {
     setVerifyingOtp(true);
 
     try {
-      console.log("Attempting to verify OTP:", { email, otp });
+      console.log("Verifying OTP:", { email, otp });
       
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: email,
-        token: otp,
-        type: 'signup'
+      const { data, error } = await supabase.functions.invoke('verify-otp', {
+        body: {
+          email: email,
+          otpCode: otp
+        }
       });
 
       console.log("OTP verification response:", { data, error });
@@ -107,12 +109,21 @@ const ConfirmEmail = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (data?.success) {
         toast({
-          title: "Email Confirmed!",
-          description: "Your account has been verified successfully.",
+          title: "Email Verified!",
+          description: "Your account has been verified successfully. Redirecting to dashboard...",
         });
-        navigate("/");
+        
+        // Refresh the auth session to get the updated user
+        await supabase.auth.refreshSession();
+        
+        // Small delay to show success message, then redirect
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      } else {
+        throw new Error(data?.error || "Verification failed");
       }
     } catch (error: any) {
       console.error("Unexpected error during OTP verification:", error);
@@ -133,135 +144,85 @@ const ConfirmEmail = () => {
           <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl">Confirm Your Email</CardTitle>
+          <CardTitle className="text-2xl">Verify Your Email</CardTitle>
           <CardDescription className="text-gray-600">
-            We've sent a confirmation email to your address. Please check your inbox.
+            Enter your email to receive a 6-digit verification code
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+          {!otpSent ? (
+            <form onSubmit={handleSendOTP} className="space-y-4">
               <div>
-                <h3 className="font-semibold text-yellow-900 mb-2">Important Notice</h3>
-                <p className="text-sm text-yellow-800 mb-2">
-                  Currently, confirmation emails contain only a link to click. 6-digit verification codes are not included in the default setup.
-                </p>
-                <p className="text-sm text-yellow-800">
-                  <strong>To confirm your email:</strong> Click the confirmation link in your email inbox.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">How to Confirm:</h3>
-            <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
-              <li>Check your email inbox (and spam folder)</li>
-              <li>Click the "Confirm your email" link</li>
-              <li>You'll be automatically redirected to the dashboard</li>
-            </ol>
-          </div>
-
-          {/* OTP Verification Section - Currently not functional with default Supabase setup */}
-          <div className="space-y-4 opacity-50">
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-4">
-                6-digit code verification (requires custom email setup)
-              </p>
-            </div>
-            
-            <div>
-              <Label htmlFor="email-for-otp">Email Address</Label>
-              <Input
-                id="email-for-otp"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                disabled
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="otp">6-Digit Code</Label>
-              <div className="flex justify-center mt-2">
-                <InputOTP
-                  value={otp}
-                  onChange={(value) => setOtp(value)}
-                  maxLength={6}
-                  disabled
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleVerifyOtp} 
-              className="w-full" 
-              disabled
-            >
-              Verify Code (Not Available)
-            </Button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">
-                Need another email?
-              </span>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-4">
-              Didn't receive the email? Check your spam folder or resend it below.
-            </p>
-          </div>
-
-          {resent ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-              <h3 className="font-semibold text-green-800 mb-2">Email Sent!</h3>
-              <p className="text-sm text-green-700">
-                A new confirmation email has been sent to {email}. 
-                Please check your inbox and spam folder for the confirmation link.
-              </p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setResent(false)}
-              >
-                Send Another Email
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleResendConfirmation} className="space-y-4">
-              <div>
-                <Label htmlFor="resend-email">Email Address</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input
-                  id="resend-email"
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email to resend confirmation"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading} variant="outline">
-                {loading ? "Sending..." : "Resend Confirmation Email"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Verification Code"}
               </Button>
             </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-green-900 mb-1">Code Sent!</h3>
+                    <p className="text-sm text-green-800">
+                      We've sent a 6-digit verification code to <strong>{email}</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="otp">6-Digit Verification Code</Label>
+                <div className="flex justify-center mt-2">
+                  <InputOTP
+                    value={otp}
+                    onChange={(value) => setOtp(value)}
+                    maxLength={6}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleVerifyOtp} 
+                className="w-full" 
+                disabled={verifyingOtp || otp.length !== 6}
+              >
+                {verifyingOtp ? "Verifying..." : "Verify Code"}
+              </Button>
+
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Didn't receive the code?
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSendOTP}
+                  disabled={loading}
+                  className="text-sm"
+                >
+                  {loading ? "Sending..." : "Resend Code"}
+                </Button>
+              </div>
+            </div>
           )}
 
           <div className="text-center">

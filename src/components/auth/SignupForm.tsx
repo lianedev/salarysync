@@ -39,15 +39,16 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     }
 
     try {
+      // Create user account (without auto-confirming email)
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             company_name: formData.companyName,
             phone_number: formData.phoneNumber,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -58,21 +59,24 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
           variant: "destructive",
         });
       } else if (data.user && !data.session) {
-        // User needs to confirm email
+        // User needs to verify email with OTP
         toast({
           title: "Account Created",
-          description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}! Please check your email to verify your account.`,
+          description: `Welcome ${formData.companyName}! Please verify your email to complete registration.`,
         });
+        
+        // Store email in sessionStorage for the verification page
+        sessionStorage.setItem('signup_email', formData.email);
         navigate("/confirm-email");
       } else if (data.session) {
-        // User is immediately signed in (email confirmation disabled)
+        // User is immediately signed in (shouldn't happen with email confirmation required)
         toast({
           title: "Account Created",
           description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}!`,
         });
-        // The auth state change listener in Index.tsx will handle the redirect
       }
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         title: "Signup Failed",
         description: "An unexpected error occurred. Please try again.",
