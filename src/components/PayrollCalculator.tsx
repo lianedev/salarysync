@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calculator } from "lucide-react";
+import { Calculator, Plus } from "lucide-react";
 import PayrollResults from "./PayrollResults";
 
 interface PayrollCalculatorProps {
   employees: any[];
+  onSwitchToAddEmployee?: () => void;
 }
 
-const PayrollCalculator = ({ employees }: PayrollCalculatorProps) => {
+const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculatorProps) => {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [payrollData, setPayrollData] = useState(null);
 
@@ -133,6 +134,14 @@ const PayrollCalculator = ({ employees }: PayrollCalculatorProps) => {
             No employees found. Please add employees first before calculating payroll.
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          {onSwitchToAddEmployee && (
+            <Button onClick={onSwitchToAddEmployee} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Employee
+            </Button>
+          )}
+        </CardContent>
       </Card>
     );
   }
@@ -197,9 +206,17 @@ const PayrollCalculator = ({ employees }: PayrollCalculatorProps) => {
                 })()}
               </div>
 
-              <Button onClick={calculatePayroll} className="w-full">
-                Calculate Payroll
-              </Button>
+              <div className="flex gap-3">
+                <Button onClick={calculatePayroll} className="flex-1 py-2">
+                  Calculate Payroll
+                </Button>
+                {onSwitchToAddEmployee && (
+                  <Button onClick={onSwitchToAddEmployee} variant="outline" className="flex items-center gap-2 py-2">
+                    <Plus className="h-4 w-4" />
+                    Add Employee
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
