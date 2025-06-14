@@ -151,11 +151,11 @@ const ConfirmEmail = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/90 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail className="h-8 w-8 text-white" />
+          <div className="h-12 w-12 md:h-16 md:w-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="h-6 w-6 md:h-8 md:w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl">Verify Your Email</CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardTitle className="text-xl md:text-2xl">Verify Your Email</CardTitle>
+          <CardDescription className="text-gray-600 text-sm md:text-base">
             Enter your email to receive a 6-digit verification code
           </CardDescription>
         </CardHeader>
@@ -181,10 +181,10 @@ const ConfirmEmail = () => {
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-green-900 mb-1">Code Sent!</h3>
-                    <p className="text-sm text-green-800">
+                    <h3 className="font-semibold text-green-900 mb-1 text-sm md:text-base">Code Sent!</h3>
+                    <p className="text-xs md:text-sm text-green-800">
                       We've sent a 6-digit verification code to <strong>{email}</strong>
                     </p>
                   </div>
@@ -220,14 +220,14 @@ const ConfirmEmail = () => {
               </Button>
 
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
+                <p className="text-xs md:text-sm text-gray-600 mb-2">
                   Didn't receive the code?
                 </p>
                 <Button 
                   variant="outline" 
                   onClick={handleSendOTP}
                   disabled={loading}
-                  className="text-sm"
+                  className="text-xs md:text-sm"
                 >
                   {loading ? "Sending..." : "Resend Code"}
                 </Button>
@@ -238,9 +238,9 @@ const ConfirmEmail = () => {
           <div className="text-center">
             <Link 
               to="/" 
-              className="inline-flex items-center text-sm text-blue-600 hover:underline"
+              className="inline-flex items-center text-xs md:text-sm text-blue-600 hover:underline"
             >
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="h-3 w-3 md:h-4 md:w-4 mr-1" />
               Back to Home
             </Link>
           </div>
