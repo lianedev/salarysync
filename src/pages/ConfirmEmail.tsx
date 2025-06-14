@@ -16,15 +16,21 @@ const ConfirmEmail = () => {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [pendingSignup, setPendingSignup] = useState<any>(null);
   const navigate = useNavigate();
 
   // Pre-populate email from signup process
   useEffect(() => {
     const signupEmail = sessionStorage.getItem('signup_email');
+    const pendingSignupData = sessionStorage.getItem('pending_signup');
+    
     if (signupEmail) {
       setEmail(signupEmail);
-      // Clear it from session storage
-      sessionStorage.removeItem('signup_email');
+      setOtpSent(true); // If we have an email, OTP was already sent
+    }
+    
+    if (pendingSignupData) {
+      setPendingSignup(JSON.parse(pendingSignupData));
     }
   }, []);
 
@@ -120,18 +126,62 @@ const ConfirmEmail = () => {
           variant: "destructive",
         });
       } else if (data?.success) {
-        toast({
-          title: "Email Verified!",
-          description: "Your account has been verified successfully. Redirecting...",
-        });
-        
-        // Refresh the auth session to get the updated user
-        await supabase.auth.refreshSession();
-        
-        // Small delay to show success message, then redirect to home
-        setTimeout(() => {
-          navigate("/");
-        }, 1500);
+        // If we have pending signup data, complete the account creation
+        if (pendingSignup) {
+          console.log("Completing signup after OTP verification");
+          
+          const { data: signupData, error: signupError } = await supabase.functions.invoke('complete-signup', {
+            body: {
+              email: pendingSignup.email,
+              password: pendingSignup.password,
+              companyName: pendingSignup.companyName,
+              phoneNumber: pendingSignup.phoneNumber,
+            }
+          });
+
+          console.log("Complete signup response:", { signupData, signupError });
+
+          if (signupError || !signupData?.success) {
+            toast({
+              title: "Account Creation Failed",
+              description: signupError?.message || signupData?.error || "Failed to create account",
+              variant: "destructive",
+            });
+            setVerifyingOtp(false);
+            return;
+          }
+
+          // Clear pending signup data
+          sessionStorage.removeItem('pending_signup');
+          sessionStorage.removeItem('signup_email');
+
+          toast({
+            title: "Account Created Successfully!",
+            description: "Your account has been created and verified. You can now log in.",
+          });
+
+          // Redirect to login page after successful account creation
+          setTimeout(() => {
+            navigate("/");
+          }, 1500);
+        } else {
+          // Just email verification (not signup)
+          toast({
+            title: "Email Verified!",
+            description: "Your email has been verified successfully.",
+          });
+          
+          // Clear email from session storage
+          sessionStorage.removeItem('signup_email');
+          
+          // Refresh the auth session to get the updated user
+          await supabase.auth.refreshSession();
+          
+          // Redirect to home
+          setTimeout(() => {
+            navigate("/");
+          }, 1500);
+        }
       } else {
         throw new Error(data?.error || "Verification failed");
       }
@@ -154,9 +204,14 @@ const ConfirmEmail = () => {
           <div className="h-12 w-12 md:h-16 md:w-16 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="h-6 w-6 md:h-8 md:w-8 text-white" />
           </div>
-          <CardTitle className="text-xl md:text-2xl">Verify Your Email</CardTitle>
+          <CardTitle className="text-xl md:text-2xl">
+            {pendingSignup ? "Complete Account Creation" : "Verify Your Email"}
+          </CardTitle>
           <CardDescription className="text-gray-600 text-sm md:text-base">
-            Enter your email to receive a 6-digit verification code
+            {pendingSignup 
+              ? "Enter the 6-digit code sent to your email to create your account"
+              : "Enter your email to receive a 6-digit verification code"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -216,7 +271,7 @@ const ConfirmEmail = () => {
                 className="w-full" 
                 disabled={verifyingOtp || otp.length !== 6}
               >
-                {verifyingOtp ? "Verifying..." : "Verify Code"}
+                {verifyingOtp ? "Verifying..." : (pendingSignup ? "Create Account" : "Verify Code")}
               </Button>
 
               <div className="text-center">

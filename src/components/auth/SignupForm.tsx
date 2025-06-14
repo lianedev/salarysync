@@ -39,42 +39,55 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     }
 
     try {
-      // Create user account (without auto-confirming email)
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            company_name: formData.companyName,
-            phone_number: formData.phoneNumber,
-          },
-          emailRedirectTo: `${window.location.origin}/`
+      // First, send OTP email using our custom function
+      console.log("Sending OTP email for signup:", formData.email);
+      
+      const { data: otpData, error: otpError } = await supabase.functions.invoke('send-otp-email', {
+        body: {
+          email: formData.email,
+          type: 'signup'
         }
       });
 
-      if (error) {
+      console.log("OTP email response:", { otpData, otpError });
+
+      if (otpError) {
         toast({
-          title: "Signup Failed",
-          description: error.message,
+          title: "Failed to Send Verification Code",
+          description: otpError.message,
           variant: "destructive",
         });
-      } else if (data.user && !data.session) {
-        // User needs to verify email with OTP
-        toast({
-          title: "Account Created",
-          description: `Welcome ${formData.companyName}! Please verify your email to complete registration.`,
-        });
-        
-        // Store email in sessionStorage for the verification page
-        sessionStorage.setItem('signup_email', formData.email);
-        navigate("/confirm-email");
-      } else if (data.session) {
-        // User is immediately signed in (shouldn't happen with email confirmation required)
-        toast({
-          title: "Account Created",
-          description: `Welcome to Kenya Payroll Calculator, ${formData.companyName}!`,
-        });
+        setLoading(false);
+        return;
       }
+
+      if (!otpData?.success) {
+        toast({
+          title: "Failed to Send Verification Code",
+          description: otpData?.error || "Unknown error occurred",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Store signup data temporarily for after verification
+      sessionStorage.setItem('pending_signup', JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+        companyName: formData.companyName,
+        phoneNumber: formData.phoneNumber,
+      }));
+
+      toast({
+        title: "Verification Code Sent",
+        description: `Please check your email for the 6-digit verification code to complete registration.`,
+      });
+      
+      // Store email for the verification page
+      sessionStorage.setItem('signup_email', formData.email);
+      navigate("/confirm-email");
+
     } catch (error: any) {
       console.error("Signup error:", error);
       toast({
@@ -161,7 +174,7 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? "Sending Verification Code..." : "Create Account"}
           </Button>
         </form>
         <div className="mt-4 text-center">
