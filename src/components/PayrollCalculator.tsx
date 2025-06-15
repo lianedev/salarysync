@@ -40,15 +40,13 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   const calculateNSSF = (basicSalary: number) => {
     let totalNSSF = 0;
 
-    // Tier 1: Applicable for employees earning between KSh 6,000 and KSh 18,000
+    // Tier 1: Fixed KSh 480 for salaries between KSh 6,000 and KSh 18,000
     if (basicSalary >= 6000 && basicSalary <= 18000) {
-      // Fixed contribution of KSh 480 for Tier 1
       totalNSSF += 480;
     }
     
-    // Tier 2: Applicable for employees earning above KSh 6,000
+    // Tier 2: Fixed KSh 2,520 for salaries above KSh 6,000 (applies to all above 6k)
     if (basicSalary > 6000) {
-      // Fixed contribution of KSh 2,520 for Tier 2
       totalNSSF += 2520;
     }
     
