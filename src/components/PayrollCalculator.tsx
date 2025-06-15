@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,20 +39,17 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   // NSSF calculation with correct tier ranges and maximum values
   const calculateNSSF = (basicSalary: number) => {
     let totalNSSF = 0;
-    
+
     // Tier 1: Applicable for employees earning between KSh 6,000 and KSh 18,000
     if (basicSalary >= 6000 && basicSalary <= 18000) {
-      // 6% of salary, max KSh 480
-      const tier1Contribution = Math.min(basicSalary * 0.06, 480);
-      totalNSSF += tier1Contribution;
+      // Fixed contribution of KSh 480 for Tier 1
+      totalNSSF += 480;
     }
     
     // Tier 2: Applicable for employees earning above KSh 6,000
     if (basicSalary > 6000) {
-      // 6% of salary above KSh 6,000, max KSh 2,520
-      const excessSalary = basicSalary - 6000;
-      const tier2Contribution = Math.min(excessSalary * 0.06, 2520);
-      totalNSSF += tier2Contribution;
+      // Fixed contribution of KSh 2,520 for Tier 2
+      totalNSSF += 2520;
     }
     
     return totalNSSF;
