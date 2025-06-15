@@ -15,7 +15,7 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   const [payrollResults, setPayrollResults] = useState<any[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // PAYE calculation with progressive tax bands
+  // PAYE calculation with correct progressive tax bands
   const calculatePAYE = (grossSalary: number) => {
     const personalRelief = 2400;
     const taxableIncome = Math.max(0, grossSalary - personalRelief);
@@ -26,12 +26,12 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
       paye = taxableIncome * 0.1;
     } else if (taxableIncome <= 32333) {
       paye = 2400 + (taxableIncome - 24000) * 0.25;
-    } else if (taxableIncome <= 500000) {
+    } else if (taxableIncome <= 600000) {
       paye = 2400 + 2083.25 + (taxableIncome - 32333) * 0.3;
     } else if (taxableIncome <= 800000) {
-      paye = 2400 + 2083.25 + 140300.1 + (taxableIncome - 500000) * 0.325;
+      paye = 2400 + 2083.25 + 170300.1 + (taxableIncome - 600000) * 0.325;
     } else {
-      paye = 2400 + 2083.25 + 140300.1 + 97500 + (taxableIncome - 800000) * 0.35;
+      paye = 2400 + 2083.25 + 170300.1 + 65000 + (taxableIncome - 800000) * 0.35;
     }
 
     return Math.max(0, paye);
