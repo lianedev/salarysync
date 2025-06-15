@@ -37,7 +37,7 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     return Math.max(0, paye);
   };
 
-  // NSSF calculation with correct tier ranges
+  // NSSF calculation with correct tier ranges and maximum values
   const calculateNSSF = (basicSalary: number) => {
     let totalNSSF = 0;
     
@@ -50,9 +50,9 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     
     // Tier 2: Applicable for employees earning above KSh 6,000
     if (basicSalary > 6000) {
-      // 6% of salary above KSh 6,000, max KSh 3,840
+      // 6% of salary above KSh 6,000, max KSh 2,520
       const excessSalary = basicSalary - 6000;
-      const tier2Contribution = Math.min(excessSalary * 0.06, 3840);
+      const tier2Contribution = Math.min(excessSalary * 0.06, 2520);
       totalNSSF += tier2Contribution;
     }
     
