@@ -14,31 +14,49 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   const [payrollResults, setPayrollResults] = useState<any[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  const calculatePAYE = (grossSalary: number) => {
-    // First calculate taxable income (gross salary minus personal relief)
-    const taxableIncome = grossSalary;
-    const personalRelief = 2400;
-    
-    let paye = 0;
-    
-    if (taxableIncome <= 11180) {
-        paye = taxableIncome * 0.10; // 10%
-    } else if (taxableIncome <= 21715) {
-        paye = 1118 + (taxableIncome - 11180) * 0.15; // 1118 + 15% of excess
-    } else if (taxableIncome <= 32249) {
-        paye = 2698 + (taxableIncome - 21715) * 0.20; // 2698 + 20% of excess
-    } else if (taxableIncome <= 42782) {
-        paye = 4804 + (taxableIncome - 32249) * 0.25; // 4804 + 25% of excess
-    } else {
-        paye = 7438 + (taxableIncome - 42782) * 0.30; // 7438 + 30% of excess
-    }
-    
-    // Apply personal relief
-    paye = Math.max(0, paye - personalRelief);
-    
-    return paye;
-};
+  /**
+   * Calculate monthly PAYE for Kenya 2025 rates.
+   *
+   * @param grossSalary  Gross monthly salary (KES)
+   * @returns             PAYE tax payable after personal relief (KES)
+   */
+  const calculatePAYE = (grossSalary: number): number => {
+    const personalRelief = 2400;  // Personal relief is 2400 KSh per month
 
+    // 2025 monthly band thresholds (KES)
+    const band1 = 24_000;
+    const band2 = 32_333.33;   // 24,000 + 8,333.33
+    const band3 = 500_000;     // 32,333.33 + 467,666.67
+    const band4 = 800_000;     // 500,000 + 300,000
+
+    // Marginal tax rates for each band
+    const rate1 = 0.10;   // 10% on the first 24,000
+    const rate2 = 0.25;   // next 8,333.33
+    const rate3 = 0.30;   // next 467,666.67
+    const rate4 = 0.325;  // next 300,000
+    const rate5 = 0.35;   // above 800,000
+
+    let tax: number;
+    if (grossSalary <= band1) {
+      tax = grossSalary * rate1;
+    } else if (grossSalary <= band2) {
+      tax = band1 * rate1 + (grossSalary - band1) * rate2;
+    } else if (grossSalary <= band3) {
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (grossSalary - band2) * rate3;
+    } else if (grossSalary <= band4) {
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (band3 - band2) * rate3 + (grossSalary - band3) * rate4;
+    } else {
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (band3 - band2) * rate3 + (band4 - band3) * rate4 + (grossSalary - band4) * rate5;
+    }
+
+    // Apply personal relief
+    const payeAfterRelief = Math.max(tax - personalRelief, 0);  // Ensure PAYE is not negative
+    
+    // Round to 2 decimal places for cleaner output
+    return Math.round(payeAfterRelief * 100) / 100;
+  };
+
+  // NSSF calculation
   const calculateNSSF = (basicSalary: number) => {
     let tier1 = 0;
     let tier2 = 0;
@@ -57,7 +75,6 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     return totalNSSF;
   };
 
-
   // SHIF calculation
   const calculateSHIF = (grossSalary: number) => {
     const shifAmount = grossSalary * 0.0275;
@@ -68,6 +85,9 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   const calculateHousingLevy = (grossSalary: number) => {
     return grossSalary * 0.015; // 1.5% of gross salary
   };
+
+  // Rounding helper function
+  const roundToTwoDecimalPlaces = (num: number) => Math.round(num * 100) / 100;
 
   const calculateBulkPayroll = () => {
     if (employees.length === 0) {
@@ -89,13 +109,13 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
       const otherAllowances = employee.otherAllowances || 0;
 
       const grossSalary = basicSalary + houseAllowance + transportAllowance + medicalAllowance + otherAllowances;
-      
+
       // Calculate deductions
       const nssf = calculateNSSF(basicSalary);
       const paye = calculatePAYE(grossSalary - nssf);
       const shif = calculateSHIF(grossSalary);
       const housingLevy = calculateHousingLevy(grossSalary);
-      
+
       const totalDeductions = paye + nssf + shif + housingLevy;
       const netSalary = grossSalary - totalDeductions;
 
@@ -111,13 +131,13 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
           total: houseAllowance + transportAllowance + medicalAllowance + otherAllowances
         },
         deductions: {
-          paye: Math.round(paye),
-          nssf: Math.round(nssf),
-          shif: Math.round(shif),
-          housingLevy: Math.round(housingLevy),
-          total: Math.round(totalDeductions)
+          paye: roundToTwoDecimalPlaces(paye),
+          nssf: roundToTwoDecimalPlaces(nssf),
+          shif: roundToTwoDecimalPlaces(shif),
+          housingLevy: roundToTwoDecimalPlaces(housingLevy),
+          total: roundToTwoDecimalPlaces(totalDeductions)
         },
-        netSalary: Math.round(netSalary)
+        netSalary: roundToTwoDecimalPlaces(netSalary)
       };
     });
 
@@ -142,8 +162,8 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
 
     // Create CSV content
     const headers = [
-      "Employee ID", "Name", "Position", "Basic Salary", "Allowances", 
-      "Gross Salary", "PAYE", "NSSF", "SHIF", "Housing Levy", 
+      "Employee ID", "Name", "Position", "Basic Salary", "Allowances",
+      "Gross Salary", "PAYE", "NSSF", "SHIF", "Housing Levy",
       "Total Deductions", "Net Salary"
     ];
 
