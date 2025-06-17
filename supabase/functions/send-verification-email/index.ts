@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email, password, companyName, phoneNumber }: SendVerificationRequest = await req.json();
-    console.log(`Creating user and sending verification email to: ${email}`);
+    console.log(`Processing account creation request for: ${email}`);
 
     if (!email || !password) {
       throw new Error('Email and password are required');
@@ -38,7 +38,57 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Using redirect URL: ${redirectUrl}`);
 
-    // Create user with email confirmation required
+    // Check if user already exists
+    const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(user => user.email === email);
+
+    if (existingUser) {
+      console.log(`User with email ${email} already exists`);
+      
+      // Check if user is already confirmed
+      if (existingUser.email_confirmed_at) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: "An account with this email already exists and is confirmed. Please try logging in instead."
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        });
+      } else {
+        // User exists but not confirmed, resend verification email
+        console.log(`Resending verification email for unconfirmed user: ${email}`);
+        
+        const { error: resendError } = await supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
+        });
+
+        if (resendError) {
+          console.error('Error resending verification email:', resendError);
+          throw new Error(`Failed to resend verification email: ${resendError.message}`);
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: "Verification email resent successfully",
+          user: existingUser
+        }), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        });
+      }
+    }
+
+    // Create new user with email confirmation required
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email,
       password: password,

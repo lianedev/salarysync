@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,22 +57,23 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     return Math.round(payeAfterRelief * 100) / 100;
   };
 
-  // NSSF calculation
+  // NSSF calculation with correct tier ranges and maximum values
   const calculateNSSF = (basicSalary: number) => {
-    let tier1 = 0;
-    let tier2 = 0;
+    let totalNSSF = 0;
 
-    // Tier 1: Fixed KSh 480 if salary >= 6,000
-    if (basicSalary >= 6000) {
-      tier1 = 480;
+    // Tier 1: Applicable for employees earning between KSh 6,000 and KSh 18,000
+    if (basicSalary >= 6000 && basicSalary <= 18000) {
+      // Fixed contribution of KSh 480 for Tier 1
+      totalNSSF += 480;
     }
-
-    // Tier 2: Fixed KSh 2,520 if salary > 6,000
+    
+    // Tier 2: Applicable for employees earning above KSh 6,000
     if (basicSalary > 6000) {
-      tier2 = 2520;
+      // Fixed contribution of KSh 2,520 for Tier 2
+      totalNSSF += 2520;
     }
-
-    const totalNSSF = tier1 + tier2;
+    
+    console.log(`NSSF calculation for salary ${basicSalary}: Tier 1 + Tier 2 = ${totalNSSF}`);
     return totalNSSF;
   };
 
