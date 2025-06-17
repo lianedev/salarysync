@@ -14,44 +14,49 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
   const [payrollResults, setPayrollResults] = useState<any[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // PAYE calculation with correct progressive tax bands
   const calculatePAYE = (grossSalary: number) => {
+    // First calculate taxable income (gross salary minus personal relief)
+    const taxableIncome = grossSalary;
     const personalRelief = 2400;
-    const taxableIncome = Math.max(0, grossSalary - personalRelief);
     
     let paye = 0;
     
-    if (taxableIncome <= 24000) {
-      paye = taxableIncome * 0.1;
-    } else if (taxableIncome <= 32333) {
-      paye = 2400 + (taxableIncome - 24000) * 0.25;
-    } else if (taxableIncome <= 600000) {
-      paye = 2400 + 2083.25 + (taxableIncome - 32333) * 0.3;
-    } else if (taxableIncome <= 800000) {
-      paye = 2400 + 2083.25 + 170300.1 + (taxableIncome - 600000) * 0.325;
+    if (taxableIncome <= 11180) {
+        paye = taxableIncome * 0.10; // 10%
+    } else if (taxableIncome <= 21715) {
+        paye = 1118 + (taxableIncome - 11180) * 0.15; // 1118 + 15% of excess
+    } else if (taxableIncome <= 32249) {
+        paye = 2698 + (taxableIncome - 21715) * 0.20; // 2698 + 20% of excess
+    } else if (taxableIncome <= 42782) {
+        paye = 4804 + (taxableIncome - 32249) * 0.25; // 4804 + 25% of excess
     } else {
-      paye = 2400 + 2083.25 + 170300.1 + 65000 + (taxableIncome - 800000) * 0.35;
+        paye = 7438 + (taxableIncome - 42782) * 0.30; // 7438 + 30% of excess
     }
+    
+    // Apply personal relief
+    paye = Math.max(0, paye - personalRelief);
+    
+    return paye;
+};
 
-    return Math.max(0, paye);
-  };
-
-  // NSSF calculation with correct tier ranges and maximum values
   const calculateNSSF = (basicSalary: number) => {
-    let totalNSSF = 0;
+    let tier1 = 0;
+    let tier2 = 0;
 
-    // Tier 1: Fixed KSh 480 for salaries between KSh 6,000 and KSh 18,000
-    if (basicSalary >= 6000 && basicSalary <= 18000) {
-      totalNSSF += 480;
+    // Tier 1: Fixed KSh 480 if salary >= 6,000
+    if (basicSalary >= 6000) {
+      tier1 = 480;
     }
-    
-    // Tier 2: Fixed KSh 2,520 for salaries above KSh 6,000 (applies to all above 6k)
+
+    // Tier 2: Fixed KSh 2,520 if salary > 6,000
     if (basicSalary > 6000) {
-      totalNSSF += 2520;
+      tier2 = 2520;
     }
-    
+
+    const totalNSSF = tier1 + tier2;
     return totalNSSF;
   };
+
 
   // SHIF calculation
   const calculateSHIF = (grossSalary: number) => {
