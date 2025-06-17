@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,7 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     const band4 = 800_000;     // 500,000 + 300,000
 
     // Marginal tax rates for each band
-    const rate1 = 0.10;   // up to 24,000
+    const rate1 = 0.10;   // 10% on the first 24,000
     const rate2 = 0.25;   // next 8,333.33
     const rate3 = 0.30;   // next 467,666.67
     const rate4 = 0.325;  // next 300,000
@@ -41,23 +40,13 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     if (grossSalary <= band1) {
       tax = grossSalary * rate1;
     } else if (grossSalary <= band2) {
-      tax = band1 * rate1
-          + (grossSalary - band1) * rate2;
+      tax = band1 * rate1 + (grossSalary - band1) * rate2;
     } else if (grossSalary <= band3) {
-      tax = band1 * rate1
-          + (band2 - band1) * rate2
-          + (grossSalary - band2) * rate3;
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (grossSalary - band2) * rate3;
     } else if (grossSalary <= band4) {
-      tax = band1 * rate1
-          + (band2 - band1) * rate2
-          + (band3 - band2) * rate3
-          + (grossSalary - band3) * rate4;
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (band3 - band2) * rate3 + (grossSalary - band3) * rate4;
     } else {
-      tax = band1 * rate1
-          + (band2 - band1) * rate2
-          + (band3 - band2) * rate3
-          + (band4 - band3) * rate4
-          + (grossSalary - band4) * rate5;
+      tax = band1 * rate1 + (band2 - band1) * rate2 + (band3 - band2) * rate3 + (band4 - band3) * rate4 + (grossSalary - band4) * rate5;
     }
 
     // Apply personal relief
@@ -67,23 +56,22 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: PayrollCalculat
     return Math.round(payeAfterRelief * 100) / 100;
   };
 
-  // NSSF calculation with correct tier ranges and maximum values
+  // NSSF calculation
   const calculateNSSF = (basicSalary: number) => {
-    let totalNSSF = 0;
+    let tier1 = 0;
+    let tier2 = 0;
 
-    // Tier 1: Applicable for employees earning between KSh 6,000 and KSh 18,000
-    if (basicSalary >= 6000 && basicSalary <= 18000) {
-      // Fixed contribution of KSh 480 for Tier 1
-      totalNSSF += 480;
+    // Tier 1: Fixed KSh 480 if salary >= 6,000
+    if (basicSalary >= 6000) {
+      tier1 = 480;
     }
-    
-    // Tier 2: Applicable for employees earning above KSh 6,000
+
+    // Tier 2: Fixed KSh 2,520 if salary > 6,000
     if (basicSalary > 6000) {
-      // Fixed contribution of KSh 2,520 for Tier 2
-      totalNSSF += 2520;
+      tier2 = 2520;
     }
-    
-    console.log(`NSSF calculation for salary ${basicSalary}: Tier 1 + Tier 2 = ${totalNSSF}`);
+
+    const totalNSSF = tier1 + tier2;
     return totalNSSF;
   };
 
