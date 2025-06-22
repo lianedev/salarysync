@@ -64,7 +64,7 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-500">Employee ID:</span>
+                      <span className="text-gray-500">Employee KRA Pin:</span>
                       <p className="font-medium">{employee.employeeId}</p>
                     </div>
                     <div>
