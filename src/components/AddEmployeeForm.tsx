@@ -113,13 +113,13 @@ const AddEmployeeForm = ({ onAddEmployee }: AddEmployeeFormProps) => {
                 />
               </div>
               <div>
-                <Label htmlFor="employeeId">Employee KRA</Label>
+                <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
                   name="employeeId"
                   value={formData.employeeId}
                   onChange={handleChange}
-                  placeholder="Enter Employee KRA"
+                  placeholder="Enter Employee id"
                   required
                 />
               </div>
