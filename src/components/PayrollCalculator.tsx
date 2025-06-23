@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, Download, FileText } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import * as XLSX from 'xlsx';
 
 interface Employee {
   id: string;
@@ -151,54 +152,95 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
     });
   };
 
-  const exportToCSV = () => {
-    if (payrollResults.length === 0) {
-      toast({
-        title: "No Data",
-        description: "Please calculate payroll first before exporting.",
-        variant: "destructive",
-      });
-      return;
-    }
+  
 
-    const headers = [
-      "Employee ID", "Name", "Position", "Basic Salary", "Allowances",
-      "Gross Salary", "PAYE", "NSSF", "SHIF", "Housing Levy",
-      "Total Deductions", "Net Salary"
-    ];
+ const exportToCSV = () => {
+  if (payrollResults.length === 0) {
+    toast({
+      title: "No Data",
+      description: "Please calculate payroll first before exporting.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    const csvContent = [
-      headers.join(","),
-      ...payrollResults.map(result => [
-        result.employee.employeeId,
-        `"${result.employee.firstName} ${result.employee.lastName}"`,
-        `"${result.employee.position}"`,
-        result.basicSalary,
-        result.allowances.total,
-        result.grossSalary,
-        result.deductions.paye,
-        result.deductions.nssf,
-        result.deductions.shif,
-        result.deductions.housingLevy,
-        result.deductions.total,
-        result.netSalary
-      ].join(","))
-    ].join("\n");
+  const headers = [
+    "Employee ID", "Name", "Position", "Basic Salary", "Allowances",
+    "Gross Salary", "PAYE", "NSSF", "SHIF", "Housing Levy",
+    "Total Deductions", "Net Salary"
+  ];
 
-    downloadFile(csvContent, "payroll-summary", "csv");
+  const totals = {
+    basicSalary: 0,
+    allowances: 0,
+    grossSalary: 0,
+    paye: 0,
+    nssf: 0,
+    shif: 0,
+    housingLevy: 0,
+    totalDeductions: 0,
+    netSalary: 0
   };
 
-  const exportToPayslip = () => {
-    if (payrollResults.length === 0) {
-      toast({
-        title: "No Data",
-        description: "Please calculate payroll first before exporting.",
-        variant: "destructive",
-      });
-      return;
-    }
+  //Csv formating
+  
+  const csvContent = [
+    headers.join(","), // Add headers first
+    ...payrollResults.map(result => {
+      const totalDeductions = result.deductions.paye + result.deductions.nssf + result.deductions.shif + result.deductions.housingLevy;
+      const row = [
+        result.employee.employeeId,
+        `"${result.employee.firstName} ${result.employee.lastName}"`, // Quoting Name field
+        `"${result.employee.position}"`, // Quoting Position field
+        result.basicSalary.toFixed(2), // Formatting as two decimal places
+        result.allowances.total.toFixed(2),
+        result.grossSalary.toFixed(2),
+        result.deductions.paye.toFixed(2),
+        result.deductions.nssf.toFixed(2),
+        result.deductions.shif.toFixed(2),
+        result.deductions.housingLevy.toFixed(2),
+        totalDeductions.toFixed(2), // Calculating and formatting total deductions
+        result.netSalary.toFixed(2)
+      ].join(",");
 
-    const payslipContent = payrollResults.map(result => `
+      // Update totals for every field
+      totals.basicSalary += result.basicSalary;
+      totals.allowances += result.allowances.total;
+      totals.grossSalary += result.grossSalary;
+      totals.paye += result.deductions.paye;
+      totals.nssf += result.deductions.nssf;
+      totals.shif += result.deductions.shif;
+      totals.housingLevy += result.deductions.housingLevy;
+      totals.totalDeductions += totalDeductions;
+      totals.netSalary += result.netSalary;
+
+      return row;
+    }),
+    // Add empty row for spacing before totals
+    "",  // Empty row for spacing
+    // Add totals row with formatting for numeric values
+    `,,"TOTALS",${totals.basicSalary.toFixed(2)},${totals.allowances.toFixed(2)},${totals.grossSalary.toFixed(2)},${totals.paye.toFixed(2)},${totals.nssf.toFixed(2)},${totals.shif.toFixed(2)},${totals.housingLevy.toFixed(2)},${totals.totalDeductions.toFixed(2)},${totals.netSalary.toFixed(2)}`
+  ].join("\n");
+
+  downloadFile(csvContent, "payroll-summary", "csv");
+};
+
+
+
+
+
+  const exportToPayslip = () => {
+  if (payrollResults.length === 0) {
+    toast({
+      title: "No Data",
+      description: "Please calculate payroll first before exporting.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  payrollResults.forEach((result) => {
+    const payslipContent = `
       PAYSLIP - ${result.employee.firstName} ${result.employee.lastName}
       Employee ID: ${result.employee.employeeId}
       Position: ${result.employee.position}
@@ -218,10 +260,16 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
 
       NET SALARY: KSh ${result.netSalary.toLocaleString()}
       ${'='.repeat(50)}
-    `).join('\n');
+    `;
 
-    downloadFile(payslipContent, "payslips", "txt");
-  };
+    // Construct the file name from the employee's name
+    const fileName = `${result.employee.firstName} ${result.employee.lastName}.txt`;
+
+    // Use a function to create and download each payslip as a separate .txt file
+    downloadFile(payslipContent, fileName, "txt");
+  });
+};
+
 
   const downloadFile = (content: string, filename: string, extension: string) => {
     const blob = new Blob([content], { type: `text/${extension === 'csv' ? 'csv' : 'plain'}` });
@@ -274,12 +322,13 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
             <div className="flex gap-2">
               <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Export CSV
+                Export Excel
               </Button>
               <Button onClick={exportToPayslip} variant="outline" size="sm" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Export Payslips
               </Button>
+
             </div>
           )}
         </CardContent>
