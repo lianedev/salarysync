@@ -70,8 +70,16 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
   };
 
   const calculateNSSF = (basicSalary: number): number => {
-    return basicSalary >= 6000 ? (basicSalary > 6000 ? 3000 : 480) : 0;
+    
+    if (basicSalary <= 8000) {
+      return 0.06 * 8000;  // Contribution for salary up to 8,000
+    } else if (basicSalary <= 72000) {
+      return 0.06 * (basicSalary - 8000)+480;  // Contribution for salary between 8,001 and 72,000
+    } else {
+      return 4320;  // Contribution for salary above 72,000
+    }
   };
+
 
   const calculateSHIF = (grossSalary: number): number => {
     return Math.max(grossSalary * 0.0275, 300);
