@@ -322,11 +322,11 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
             <div className="flex gap-2">
               <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
-                Export Excel
+                Export Excel summary
               </Button>
               <Button onClick={exportToPayslip} variant="outline" size="sm" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Export Payslips
+                Export Employee Payslips
               </Button>
 
             </div>
