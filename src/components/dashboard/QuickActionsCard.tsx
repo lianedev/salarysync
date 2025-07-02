@@ -25,17 +25,17 @@ const QuickActionsCard = ({
           Common tasks you might want to perform
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex gap-2">
+      <CardContent className="flex flex-col sm:flex-row gap-2">
         <AddEmployeeModal onAddEmployee={onAddEmployee} />
-        <Button onClick={onCalculatePayroll} variant="outline" className="flex items-center gap-1">
+        <Button onClick={onCalculatePayroll} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
           <Calculator className="p-0.5" />
           Calculate Payroll
         </Button>
-        <Button onClick={onViewAnalytics} variant="outline" className="flex items-center gap-1">
+        <Button onClick={onViewAnalytics} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
           <BarChart3 className="p-0.5" />
           View Analytics
         </Button>
-        <Button onClick={onTrackAttendance} variant="outline" className="flex items-center gap-1">
+        <Button onClick={onTrackAttendance} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
           <Clock className="p-0.5" />
           Track Attendance
         </Button>
