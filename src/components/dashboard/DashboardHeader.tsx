@@ -13,7 +13,7 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-[#209CEE]">
               SalarySync
             </h1>
             <p className="text-gray-600">Welcome back {user.companyName}</p>
