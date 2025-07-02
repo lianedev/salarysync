@@ -13,7 +13,7 @@ interface QuickActionsCardProps {
 
 const QuickActionsCard = ({ 
   onAddEmployee, 
-  onCalculatePayroll, 
+   
   onViewAnalytics, 
   onTrackAttendance 
 }: QuickActionsCardProps) => {
@@ -27,10 +27,7 @@ const QuickActionsCard = ({
       </CardHeader>
       <CardContent className="flex flex-col sm:flex-row gap-2">
         <AddEmployeeModal onAddEmployee={onAddEmployee} />
-        <Button onClick={onCalculatePayroll} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
-          <Calculator className="p-0.5" />
-          Calculate Payroll
-        </Button>
+        
         <Button onClick={onViewAnalytics} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
           <BarChart3 className="p-0.5" />
           View Analytics
