@@ -311,11 +311,7 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
             >
               {isCalculating ? "Calculating..." : `Calculate Payroll (${employees.length} employees)`}
             </Button>
-            {onSwitchToAddEmployee && (
-              <Button onClick={onSwitchToAddEmployee} variant="outline" className="w-full sm:w-auto">
-                Add Employee
-              </Button>
-            )}
+            
           </div>
 
 
