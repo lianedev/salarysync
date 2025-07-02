@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Plus, Users, Calculator } from "lucide-react";
+import { LogOut, Plus, Users, Calculator, BarChart3, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import EmployeeList from "./EmployeeList";
 import AddEmployeeForm from "./AddEmployeeForm";
 import PayrollCalculator from "./PayrollCalculator";
+import Analytics from "./Analytics";
+import AttendanceTracking from "./AttendanceTracking";
 
 interface DashboardProps {
   user: any;
@@ -252,15 +254,17 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       {/* Main Content */}
       <div className="container mx-auto px-1 py-8 ">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid  grid-cols-4 ">
+          <TabsList className="grid grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="add-employee">+ Employee</TabsTrigger>
             <TabsTrigger value="calculator">Calculator</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols- gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -319,6 +323,14 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   <Calculator className="p-0.5" />
                   Calculate Payroll
                 </Button>
+                <Button onClick={() => setActiveTab("analytics")} variant="outline" className="flex items-center gap-1">
+                  <BarChart3 className="p-0.5" />
+                  View Analytics
+                </Button>
+                <Button onClick={() => setActiveTab("attendance")} variant="outline" className="flex items-center gap-1">
+                  <Clock className="p-0.5" />
+                  Track Attendance
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -348,6 +360,14 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               employees={transformedEmployees} 
               onSwitchToAddEmployee={() => setActiveTab("add-employee")}
             />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <Analytics employees={transformedEmployees} />
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            <AttendanceTracking employees={transformedEmployees} />
           </TabsContent>
         </Tabs>
       </div>
