@@ -303,20 +303,21 @@ const PayrollCalculator = ({ employees, onSwitchToAddEmployee }: { employees: Em
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full">
             <Button 
               onClick={calculateBulkPayroll} 
-              className="flex-1"
+              className="w-full sm:flex-1"
               disabled={isCalculating || employees.length === 0}
             >
               {isCalculating ? "Calculating..." : `Calculate Payroll (${employees.length} employees)`}
             </Button>
             {onSwitchToAddEmployee && (
-              <Button onClick={onSwitchToAddEmployee} variant="outline">
+              <Button onClick={onSwitchToAddEmployee} variant="outline" className="w-full sm:w-auto">
                 Add Employee
               </Button>
             )}
           </div>
+
 
           {payrollResults.length > 0 && (
             <div className="flex gap-2">
