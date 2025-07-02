@@ -6,7 +6,7 @@ import { LogOut, Plus, Users, Calculator, BarChart3, Clock } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import EmployeeList from "./EmployeeList";
-import AddEmployeeForm from "./AddEmployeeForm";
+import AddEmployeeModal from "./AddEmployeeModal";
 import PayrollCalculator from "./PayrollCalculator";
 import Analytics from "./Analytics";
 import AttendanceTracking from "./AttendanceTracking";
@@ -254,10 +254,9 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       {/* Main Content */}
       <div className="container mx-auto px-1 py-8 ">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-6">
+          <TabsList className="grid grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
-            <TabsTrigger value="add-employee">+ Employee</TabsTrigger>
             <TabsTrigger value="calculator">Calculator</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
@@ -315,10 +314,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex gap-2">
-                <Button onClick={() => setActiveTab("add-employee")} className="flex items-center gap-1">
-                  <Plus className="p-0.5" />
-                  Add Employee
-                </Button>
+                <AddEmployeeModal onAddEmployee={addEmployee} />
                 <Button onClick={() => setActiveTab("calculator")} variant="outline" className="flex items-center gap-1">
                   <Calculator className="p-0.5" />
                   Calculate Payroll
@@ -351,14 +347,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             )}
           </TabsContent>
 
-          <TabsContent value="add-employee">
-            <AddEmployeeForm onAddEmployee={addEmployee} />
-          </TabsContent>
-
           <TabsContent value="calculator">
             <PayrollCalculator 
               employees={transformedEmployees} 
-              onSwitchToAddEmployee={() => setActiveTab("add-employee")}
+              onSwitchToAddEmployee={() => {}} // No longer needed since we use modal
             />
           </TabsContent>
 
