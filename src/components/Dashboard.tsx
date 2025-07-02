@@ -20,6 +20,8 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [employees, setEmployees] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -231,6 +233,59 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
     otherAllowances: parseFloat(String(emp.other_allowances || emp.otherAllowances || '0')),
   }));
 
+  // If Analytics or Attendance views are active, show them instead of the main dashboard
+  if (showAnalytics) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <Button onClick={() => setShowAnalytics(false)} variant="outline">
+                  ← Back to Dashboard
+                </Button>
+                <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+              </div>
+              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-1 py-8">
+          <Analytics employees={transformedEmployees} />
+        </div>
+      </div>
+    );
+  }
+
+  if (showAttendance) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <Button onClick={() => setShowAttendance(false)} variant="outline">
+                  ← Back to Dashboard
+                </Button>
+                <h1 className="text-2xl font-bold text-gray-900">Attendance & Time Tracking</h1>
+              </div>
+              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-1 py-8">
+          <AttendanceTracking employees={transformedEmployees} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -254,12 +309,10 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
       {/* Main Content */}
       <div className="container mx-auto px-1 py-8 ">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5">
+          <TabsList className="grid grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="calculator">Calculator</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -319,11 +372,11 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                   <Calculator className="p-0.5" />
                   Calculate Payroll
                 </Button>
-                <Button onClick={() => setActiveTab("analytics")} variant="outline" className="flex items-center gap-1">
+                <Button onClick={() => setShowAnalytics(true)} variant="outline" className="flex items-center gap-1">
                   <BarChart3 className="p-0.5" />
                   View Analytics
                 </Button>
-                <Button onClick={() => setActiveTab("attendance")} variant="outline" className="flex items-center gap-1">
+                <Button onClick={() => setShowAttendance(true)} variant="outline" className="flex items-center gap-1">
                   <Clock className="p-0.5" />
                   Track Attendance
                 </Button>
@@ -352,14 +405,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
               employees={transformedEmployees} 
               onSwitchToAddEmployee={() => {}} // No longer needed since we use modal
             />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <Analytics employees={transformedEmployees} />
-          </TabsContent>
-
-          <TabsContent value="attendance">
-            <AttendanceTracking employees={transformedEmployees} />
           </TabsContent>
         </Tabs>
       </div>
