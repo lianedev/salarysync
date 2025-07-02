@@ -16,7 +16,7 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
             <h1 className="text-2xl font-bold text-gray-900">
               SalarySync
             </h1>
-            <p className="text-gray-600">Welcome back, {user.companyName}</p>
+            <p className="text-gray-600">Welcome back {user.companyName}</p>
           </div>
           <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
             <LogOut className="h-4 w-4" />
