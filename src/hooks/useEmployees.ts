@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -18,7 +19,6 @@ export const useEmployees = (user: any) => {
       const { data, error } = await supabase
         .from('employees')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -50,7 +50,10 @@ export const useEmployees = (user: any) => {
       console.log('Employee data being inserted:', employeeData);
       console.log('User ID being used:', user?.id);
 
-      if (!user || !user.id) {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
+      if (!session || !session.user) {
         toast({
           title: "Authentication Error",
           description: "You must be logged in to add employees.",
@@ -62,7 +65,7 @@ export const useEmployees = (user: any) => {
       const { data, error } = await supabase
         .from('employees')
         .insert([{
-          user_id: user.id,
+          user_id: session.user.id,
           employee_id: employeeData.employeeId,
           first_name: employeeData.firstName,
           last_name: employeeData.lastName,
