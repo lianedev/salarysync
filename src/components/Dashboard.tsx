@@ -4,28 +4,45 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut } from "lucide-react";
+import { useUser, useClerk } from '@clerk/clerk-react';
 import EmployeeList from "./EmployeeList";
 import PayrollCalculator from "./PayrollCalculator";
 import Analytics from "./Analytics";
 import AttendanceTracking from "./AttendanceTracking";
-import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardKPICards from "./dashboard/DashboardKPICards";
 import QuickActionsCard from "./dashboard/QuickActionsCard";
 import { useEmployees } from "../hooks/useEmployees";
 import { transformEmployeeData } from "./dashboard/EmployeeDataTransformer";
 
-interface DashboardProps {
-  user: any;
-  onLogout: () => void;
-}
-
-const Dashboard = ({ user, onLogout }: DashboardProps) => {
+const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAttendance, setShowAttendance] = useState(false);
   
-  const { employees, loading, addEmployee, updateEmployee, deleteEmployee } = useEmployees(user);
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  
+  // Transform user data for compatibility with existing components
+  const transformedUser = user ? {
+    id: user.id,
+    email: user.primaryEmailAddress?.emailAddress || '',
+    companyName: user.organizationMemberships?.[0]?.organization?.name || 
+                 user.fullName || 
+                 user.primaryEmailAddress?.emailAddress?.split('@')[0] || 
+                 'Your Company',
+    phoneNumber: user.primaryPhoneNumber?.phoneNumber || '',
+  } : null;
+
+  const { employees, loading, addEmployee, updateEmployee, deleteEmployee } = useEmployees(transformedUser);
   const transformedEmployees = transformEmployeeData(employees);
+
+  const handleLogout = () => {
+    signOut();
+  };
+
+  if (!user || !transformedUser) {
+    return null;
+  }
 
   // If Analytics view is active, show it instead of the main dashboard
   if (showAnalytics) {
@@ -40,7 +57,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 </Button>
                 <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
               </div>
-              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+              <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
@@ -66,7 +83,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 </Button>
                 <h1 className="text-2xl font-bold text-gray-900">Attendance & Time Tracking</h1>
               </div>
-              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+              <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
                 Logout
               </Button>
@@ -82,7 +99,22 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader user={user} onLogout={onLogout} />
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-[#209CEE]">
+                SalarySync
+              </h1>
+              <p className="text-gray-600">Welcome back {transformedUser.companyName}</p>
+            </div>
+            <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
 
       <div className="container mx-auto px-1 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -95,7 +127,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
           <TabsContent value="overview" className="space-y-6">
             <DashboardKPICards 
               employees={transformedEmployees} 
-              companyName={user.companyName} 
+              companyName={transformedUser.companyName} 
             />
 
             <QuickActionsCard

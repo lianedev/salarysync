@@ -1,15 +1,9 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-interface NavigationProps {
-  onLoginClick?: () => void;
-  onSignupClick?: () => void;
-}
-
-const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
+const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -46,20 +40,6 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            {onLoginClick && onSignupClick && (
-              <>
-                <Button variant="ghost" onClick={onLoginClick}>
-                  Login
-                </Button>
-                <Button onClick={onSignupClick}>
-                  Sign Up
-                </Button>
-              </>
-            )}
-          </div>
-
           {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2"
@@ -85,16 +65,6 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
                   {item.name}
                 </Link>
               ))}
-              {onLoginClick && onSignupClick && (
-                <div className="flex flex-col space-y-2 px-4 pt-4 border-t">
-                  <Button variant="ghost" onClick={onLoginClick} className="w-full">
-                    Login
-                  </Button>
-                  <Button onClick={onSignupClick} className="w-full">
-                    Sign Up
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         )}
