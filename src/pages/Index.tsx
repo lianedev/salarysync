@@ -43,18 +43,110 @@ const Index = () => {
                   Streamline your payroll processing with precision. Calculate PAYE, NSSF, NHIF, and Housing Levy 
                   with complete accuracy and regulatory compliance.
                 </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    className="border-2 border-gray-300 hover:border-blue-600 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
+                  >
+                    Watch Demo
+                  </Button>
+                </div>
               </div>
 
-              <div className="flex justify-center">
-                {/* Center the Clerk Auth component */}
-                <div className="w-full max-w-md">
+              <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                {/* Left - Key Features */}
+                <div className="lg:col-span-2 space-y-8">
+                  {/* Features Grid */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
+                      <CardHeader className="pb-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <Calculator className="h-6 w-6 text-white" />
+                        </div>
+                        <CardTitle className="text-xl">Precise Calculations</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600">Automated PAYE, NSSF, NHIF & Housing Levy calculations following latest KRA guidelines.</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
+                      <CardHeader className="pb-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <Users className="h-6 w-6 text-white" />
+                        </div>
+                        <CardTitle className="text-xl">Team Management</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600">Efficiently manage unlimited employees with detailed profiles and salary structures.</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
+                      <CardHeader className="pb-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <FileText className="h-6 w-6 text-white" />
+                        </div>
+                        <CardTitle className="text-xl">Smart Reports</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600">Generate comprehensive payroll reports and summaries for better financial planning.</p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
+                      <CardHeader className="pb-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                          <Shield className="h-6 w-6 text-white" />
+                        </div>
+                        <CardTitle className="text-xl">100% Compliant</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-gray-600">Stay compliant with the latest Kenyan tax regulations and statutory requirements.</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Trust Indicators */}
+                  <Card className="border-0 bg-gradient-to-r from-blue-50 to-emerald-50 p-8">
+                    <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Trusted by 500+ Kenyan Businesses</h3>
+                      <p className="text-gray-600">Join companies who've simplified their payroll processing</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-6 text-center">
+                      <div>
+                        <div className="text-3xl font-bold text-blue-600 mb-2">99.9%</div>
+                        <div className="text-gray-600">Accuracy Rate</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold text-emerald-600 mb-2">2hrs</div>
+                        <div className="text-gray-600">Time Saved Weekly</div>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
+                        <div className="text-gray-600">Support Available</div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Right - Auth Forms */}
+                <div className="lg:col-span-1">
                   <ClerkAuth />
                 </div>
               </div>
 
-              {/* Features Section */}
-              <div className="mt-20">
-                <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">Why Choose Kenya Payroll Hub?</h2>
+              {/* Benefits Section */}
+              <div className="mt-20 text-center">
+                <h2 className="text-3xl font-bold text-gray-900 mb-12">Why Choose Kenya Payroll Hub?</h2>
                 <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
                   {[
                     { icon: Clock, title: "Save Time", description: "Reduce payroll processing from hours to minutes" },
