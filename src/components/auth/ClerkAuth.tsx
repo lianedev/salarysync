@@ -22,9 +22,8 @@ const ClerkAuth = () => {
           {showSignUp ? (
             <div className="space-y-4">
               <SignUp 
-                fallbackRedirectUrl="/"
-                signInUrl="#"
-                afterSignUpUrl="/"
+                forceRedirectUrl="/"
+                signInForceRedirectUrl="/"
               />
               <div className="text-center">
                 <p className="text-sm text-gray-600">
@@ -41,9 +40,8 @@ const ClerkAuth = () => {
           ) : (
             <div className="space-y-4">
               <SignIn 
-                fallbackRedirectUrl="/"
-                signUpUrl="#"
-                afterSignInUrl="/"
+                forceRedirectUrl="/"
+                signUpForceRedirectUrl="/"
               />
               <div className="text-center">
                 <p className="text-sm text-gray-600">
