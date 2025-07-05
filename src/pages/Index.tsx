@@ -3,17 +3,54 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, Users, FileText, DollarSign, Shield, Clock, CheckCircle, ArrowRight } from "lucide-react";
-import { useUser } from '@clerk/clerk-react';
+import { supabase } from "@/integrations/supabase/client";
 import Dashboard from "@/components/Dashboard";
 import Navigation from "@/components/Navigation";
-import ClerkAuth from "@/components/auth/ClerkAuth";
+import SignupForm from "@/components/auth/SignupForm";
+import LoginForm from "@/components/auth/LoginForm";
 
 const Index = () => {
-  const { user, isLoaded } = useUser();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showSignup, setShowSignup] = useState(false);
 
-  // Show loading state while Clerk is initializing
-  if (!isLoaded) {
+  // Check for existing session
+  useState(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+      }
+      setLoading(false);
+    };
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+  };
+
+  const handleSignup = (userData: any) => {
+    setUser(userData);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  // Show loading state while checking authentication
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center">
         <div className="text-center">
@@ -28,12 +65,12 @@ const Index = () => {
   if (user) {
     const userData = {
       id: user.id,
-      email: user.primaryEmailAddress?.emailAddress || '',
-      companyName: user.organizationMemberships?.[0]?.organization?.name || 'Your Company',
-      phoneNumber: user.primaryPhoneNumber?.phoneNumber || '',
+      email: user.email || '',
+      companyName: user.user_metadata?.company_name || 'Your Company',
+      phoneNumber: user.user_metadata?.phone_number || '',
     };
     
-    return <Dashboard user={userData} onLogout={() => window.location.reload()} />;
+    return <Dashboard user={userData} onLogout={handleLogout} />;
   }
 
   // Show landing page with auth forms if not logged in
@@ -178,7 +215,17 @@ const Index = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8 pt-0">
-                  <ClerkAuth mode={showSignup ? 'signup' : 'signin'} />
+                  {showSignup ? (
+                    <SignupForm 
+                      onSignup={handleSignup}
+                      onSwitchToLogin={() => setShowSignup(false)}
+                    />
+                  ) : (
+                    <LoginForm 
+                      onLogin={handleLogin}
+                      onSwitchToSignup={() => setShowSignup(true)}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
