@@ -18,7 +18,7 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
   ];
 
   return (
-    <nav className="fixed top-1 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl rounded-2xl bg-transparent backdrop-blur-md border border-white/30 shadow-lg flex items-center justify-between   z-50">
+    <nav className="bg-[#0000]  ">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
