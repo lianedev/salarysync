@@ -14,13 +14,11 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
   const location = useLocation();
 
   const navItems = [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" },
+    
   ];
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="fixed top-1 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl rounded-2xl bg-transparent backdrop-blur-md border border-white/30 shadow-lg flex items-center justify-between   z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
