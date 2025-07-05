@@ -46,19 +46,7 @@ const Navigation = ({ onLoginClick, onSignupClick }: NavigationProps) => {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            {onLoginClick && onSignupClick && (
-              <>
-                <Button variant="ghost" onClick={onLoginClick}>
-                  Login
-                </Button>
-                <Button onClick={onSignupClick}>
-                  Sign Up
-                </Button>
-              </>
-            )}
-          </div>
+          
 
           {/* Mobile Menu Button */}
           <button
