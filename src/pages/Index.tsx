@@ -156,7 +156,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button 
                 size="lg" 
-                onClick={() => setShowSignup(true)}
+                onClick={() => setShowSignup(false)}
                 className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Start Free Trial
