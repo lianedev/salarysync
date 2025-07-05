@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App.tsx'
 import './index.css'
 
+// Replace this with your actual Clerk publishable key from https://go.clerk.com/lovable
 const PUBLISHABLE_KEY = "pk_test_bW9kZXJuLXNlYWwtMTYuY2xlcmsuYWNjb3VudHMuZGV2JA"
 
 if (!PUBLISHABLE_KEY) {
