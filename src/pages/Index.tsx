@@ -1,110 +1,19 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, Users, FileText, DollarSign, Shield, Clock, CheckCircle, ArrowRight } from "lucide-react";
-import LoginForm from "@/components/auth/LoginForm";
-import SignupForm from "@/components/auth/SignupForm";
+import { useUser } from '@clerk/clerk-react';
 import Dashboard from "@/components/Dashboard";
 import Navigation from "@/components/Navigation";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import ClerkAuth from "@/components/auth/ClerkAuth";
 
 const Index = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, isLoaded } = useUser();
   const [showSignup, setShowSignup] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if user is logged in from localStorage first
-    const savedUser = localStorage.getItem('payroll_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setIsLoggedIn(true);
-      setLoading(false);
-      return;
-    }
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          // User has successfully signed in (including after email confirmation)
-          const userData = {
-            id: session.user.id,
-            email: session.user.email,
-            companyName: session.user.user_metadata?.company_name || 'Your Company',
-            phoneNumber: session.user.user_metadata?.phone_number || '',
-          };
-          
-          setUser(userData);
-          setIsLoggedIn(true);
-          localStorage.setItem('payroll_user', JSON.stringify(userData));
-          
-          toast({
-            title: "Welcome!",
-            description: "You have successfully logged in.",
-          });
-        } else if (event === 'SIGNED_OUT') {
-          // User signed out
-          setUser(null);
-          setIsLoggedIn(false);
-          localStorage.removeItem('payroll_user');
-          localStorage.removeItem('employees');
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const userData = {
-          id: session.user.id,
-          email: session.user.email,
-          companyName: session.user.user_metadata?.company_name || 'Your Company',
-          phoneNumber: session.user.user_metadata?.phone_number || '',
-        };
-        
-        setUser(userData);
-        setIsLoggedIn(true);
-        localStorage.setItem('payroll_user', JSON.stringify(userData));
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = (userData: any) => {
-    setUser(userData);
-    setIsLoggedIn(true);
-    localStorage.setItem('payroll_user', JSON.stringify(userData));
-  };
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setIsLoggedIn(false);
-      localStorage.removeItem('payroll_user');
-      localStorage.removeItem('employees');
-      
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  // Show loading state while checking authentication
-  if (loading) {
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 flex items-center justify-center">
         <div className="text-center">
@@ -116,8 +25,15 @@ const Index = () => {
   }
 
   // Show dashboard if user is logged in
-  if (isLoggedIn && user) {
-    return <Dashboard user={user} onLogout={handleLogout} />;
+  if (user) {
+    const userData = {
+      id: user.id,
+      email: user.primaryEmailAddress?.emailAddress || '',
+      companyName: user.organizationMemberships?.[0]?.organization?.name || 'Your Company',
+      phoneNumber: user.primaryPhoneNumber?.phoneNumber || '',
+    };
+    
+    return <Dashboard user={userData} onLogout={() => window.location.reload()} />;
   }
 
   // Show landing page with auth forms if not logged in
@@ -156,7 +72,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button 
                 size="lg" 
-                onClick={() => setShowSignup(false)}
+                onClick={() => setShowSignup(true)}
                 className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Start Free Trial
@@ -262,17 +178,7 @@ const Index = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8 pt-0">
-                  {showSignup ? (
-                    <SignupForm 
-                      onSignup={handleLogin}
-                      onSwitchToLogin={() => setShowSignup(false)}
-                    />
-                  ) : (
-                    <LoginForm 
-                      onLogin={handleLogin}
-                      onSwitchToSignup={() => setShowSignup(true)}
-                    />
-                  )}
+                  <ClerkAuth mode={showSignup ? 'signup' : 'signin'} />
                 </CardContent>
               </Card>
             </div>
