@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, Users, FileText, DollarSign, Shield, Clock, CheckCircle, ArrowRight } from "lucide-react";
@@ -15,7 +15,7 @@ const Index = () => {
   const [showSignup, setShowSignup] = useState(false);
 
   // Check for existing session
-  useState(() => {
+  useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
