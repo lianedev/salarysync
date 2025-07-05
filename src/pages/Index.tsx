@@ -106,24 +106,7 @@ const Index = () => {
               Streamline your payroll processing with precision. Calculate PAYE, NSSF, NHIF, and Housing Levy 
               with complete accuracy and regulatory compliance.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <Button 
-                size="lg" 
-                onClick={() => setShowSignup(true)}
-                className="bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => setShowSignup(false)}
-                className="border-2 border-gray-300 hover:border-blue-600 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300"
-              >
-                Watch Demo
-              </Button>
-            </div>
+            
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
