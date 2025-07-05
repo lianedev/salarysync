@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +28,22 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     e.preventDefault();
     setLoading(true);
 
+    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Error",
         description: "Passwords do not match",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (formData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
       setLoading(false);
@@ -52,9 +65,10 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
       console.log("User creation response:", { data, error });
 
       if (error) {
+        console.error("Function invocation error:", error);
         toast({
           title: "Account Creation Failed",
-          description: error.message,
+          description: "There was an error processing your request. Please try again.",
           variant: "destructive",
         });
         setLoading(false);
@@ -148,8 +162,9 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
               type="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder="Create a password (min 6 characters)"
               required
+              minLength={6}
             />
           </div>
           <div>
