@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, Users, FileText, DollarSign, Shield, Clock, CheckCircle, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import Dashboard from "@/components/Dashboard";
 import Navigation from "@/components/Navigation";
 import SignupForm from "@/components/auth/SignupForm";
@@ -15,36 +17,63 @@ const Index = () => {
 
   // Check for existing session and listen for auth changes
   useEffect(() => {
-    // Set up auth state listener first
+    // Check if we have auth tokens in the URL hash (from email confirmation)
+    const handleAuthFromUrl = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        toast({
+          title: "Authentication Error",
+          description: "There was an issue with your authentication. Please try logging in again.",
+          variant: "destructive",
+        });
+      } else if (data.session) {
+        console.log('User authenticated from URL:', data.session.user);
+        setUser(data.session.user);
+        toast({
+          title: "Welcome!",
+          description: "Your email has been verified and you've been logged in successfully.",
+        });
+      }
+      
+      setLoading(false);
+    };
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth event:', event, session);
-        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          setUser(session.user);
+          if (event === 'SIGNED_IN') {
+            toast({
+              title: "Welcome back!",
+              description: "You've been logged in successfully.",
+            });
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+        
         setLoading(false);
       }
     );
 
-    // Then check for existing session
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
-        } else {
-          console.log('Current session:', session);
-          setUser(session?.user ?? null);
-        }
-      } catch (error) {
-        console.error('Session check failed:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
+    // Handle auth from URL or check existing session
+    handleAuthFromUrl();
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Clean up URL hash after processing auth tokens
+  useEffect(() => {
+    if (user && window.location.hash) {
+      // Clean up the URL hash after successful authentication
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user]);
 
   const handleLogin = (userData: any) => {
     console.log('Login handler called with:', userData);
