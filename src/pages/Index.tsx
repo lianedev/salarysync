@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,39 +13,62 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [showSignup, setShowSignup] = useState(false);
 
-  // Check for existing session
+  // Check for existing session and listen for auth changes
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-      }
-      setLoading(false);
-    };
-    checkSession();
-
-    // Listen for auth changes
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event, session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
+    // Then check for existing session
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+        } else {
+          console.log('Current session:', session);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Session check failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = (userData: any) => {
+    console.log('Login handler called with:', userData);
     setUser(userData);
   };
 
   const handleSignup = (userData: any) => {
+    console.log('Signup handler called with:', userData);
     setUser(userData);
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      console.log('Logging out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      } else {
+        console.log('Logout successful');
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Unexpected logout error:', error);
+    }
   };
 
   // Show loading state while checking authentication

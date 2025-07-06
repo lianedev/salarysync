@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface SignupFormProps {
   onSignup: (user: any) => void;
@@ -22,7 +21,6 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     phoneNumber: "",
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,45 +51,46 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
     try {
       console.log("Creating user account:", formData.email);
       
-      const { data, error } = await supabase.functions.invoke('send-verification-email', {
-        body: {
-          email: formData.email,
-          password: formData.password,
-          companyName: formData.companyName,
-          phoneNumber: formData.phoneNumber,
+      // Use Supabase Auth directly for signup
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            company_name: formData.companyName,
+            phone_number: formData.phoneNumber,
+          }
         }
       });
 
-      console.log("User creation response:", { data, error });
+      console.log("Signup response:", { data, error });
 
       if (error) {
-        console.error("Function invocation error:", error);
+        console.error("Signup error:", error);
         toast({
           title: "Account Creation Failed",
-          description: "There was an error processing your request. Please try again.",
+          description: error.message,
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      if (!data?.success) {
+      if (data.user) {
         toast({
-          title: "Account Creation Failed",
-          description: data?.error || "Unknown error occurred",
-          variant: "destructive",
+          title: "Account Created!",
+          description: "Please check your email and click the verification link to complete your registration.",
         });
-        setLoading(false);
-        return;
+        
+        // Clear form
+        setFormData({
+          companyName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          phoneNumber: "",
+        });
       }
-
-      toast({
-        title: "Account Created!",
-        description: "Please check your email and click the verification link to complete your registration.",
-      });
-      
-      // Navigate to confirm email page with email in state
-      navigate("/confirm-email", { state: { email: formData.email } });
 
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -113,89 +112,82 @@ const SignupForm = ({ onSignup, onSwitchToLogin }: SignupFormProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Create Your Account</CardTitle>
-        <CardDescription>Start managing your payroll today</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="companyName">Company Name</Label>
-            <Input
-              id="companyName"
-              name="companyName"
-              value={formData.companyName}
-              onChange={handleChange}
-              placeholder="Enter your company name"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password (min 6 characters)"
-              required
-              minLength={6}
-            />
-          </div>
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating Account..." : "Create Account"}
-          </Button>
-        </form>
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{" "}
-            <button
-              onClick={onSwitchToLogin}
-              className="text-blue-600 hover:underline"
-            >
-              Login here
-            </button>
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="companyName">Company Name</Label>
+        <Input
+          id="companyName"
+          name="companyName"
+          value={formData.companyName}
+          onChange={handleChange}
+          placeholder="Enter your company name"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="phoneNumber">Phone Number</Label>
+        <Input
+          id="phoneNumber"
+          name="phoneNumber"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          placeholder="Enter your phone number"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Create a password (min 6 characters)"
+          required
+          minLength={6}
+        />
+      </div>
+      <div>
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm your password"
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Creating Account..." : "Create Account"}
+      </Button>
+      <div className="text-center">
+        <p className="text-sm text-gray-600">
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="text-blue-600 hover:underline"
+          >
+            Login here
+          </button>
+        </p>
+      </div>
+    </form>
   );
 };
 

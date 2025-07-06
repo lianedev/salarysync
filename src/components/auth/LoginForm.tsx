@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,18 +24,24 @@ const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
     setLoading(true);
 
     try {
+      console.log("Attempting login for:", email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log("Login response:", { data, error });
+
       if (error) {
+        console.error("Login error:", error);
         toast({
           title: "Login Failed",
           description: error.message,
           variant: "destructive",
         });
       } else if (data.user) {
+        console.log("Login successful:", data.user);
         onLogin(data.user);
         toast({
           title: "Login Successful",
@@ -44,6 +49,7 @@ const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
         });
       }
     } catch (error: any) {
+      console.error("Unexpected login error:", error);
       toast({
         title: "Login Failed",
         description: "An unexpected error occurred. Please try again.",
@@ -99,94 +105,86 @@ const LoginForm = ({ onLogin, onSwitchToSignup }: LoginFormProps) => {
 
   if (showResetForm) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Reset Password</CardTitle>
-          <CardDescription>Enter your email to receive reset instructions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePasswordReset} className="space-y-4">
-            <div>
-              <Label htmlFor="resetEmail">Email</Label>
-              <Input
-                id="resetEmail"
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={resetLoading}>
-              {resetLoading ? "Sending..." : "Send Reset Email"}
-            </Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="w-full"
-              onClick={() => setShowResetForm(false)}
-            >
-              Back to Login
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Login to Your Account</CardTitle>
-        <CardDescription>Access your payroll dashboard</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold">Reset Password</h3>
+          <p className="text-sm text-gray-600">Enter your email to receive reset instructions</p>
+        </div>
+        <form onSubmit={handlePasswordReset} className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="resetEmail">Email</Label>
             <Input
-              id="email"
+              id="resetEmail"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
               placeholder="Enter your email"
               required
             />
           </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+          <Button type="submit" className="w-full" disabled={resetLoading}>
+            {resetLoading ? "Sending..." : "Send Reset Email"}
+          </Button>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            className="w-full"
+            onClick={() => setShowResetForm(false)}
+          >
+            Back to Login
           </Button>
         </form>
-        <div className="mt-4 text-center space-y-2">
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Logging in..." : "Login"}
+      </Button>
+      <div className="text-center space-y-2">
+        <button
+          type="button"
+          onClick={() => setShowResetForm(true)}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Forgot your password?
+        </button>
+        <p className="text-sm text-gray-600">
+          Don't have an account?{" "}
           <button
-            onClick={() => setShowResetForm(true)}
-            className="text-sm text-blue-600 hover:underline"
+            type="button"
+            onClick={onSwitchToSignup}
+            className="text-blue-600 hover:underline"
           >
-            Forgot your password?
+            Sign up here
           </button>
-          <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <button
-              onClick={onSwitchToSignup}
-              className="text-blue-600 hover:underline"
-            >
-              Sign up here
-            </button>
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        </p>
+      </div>
+    </form>
   );
 };
 
