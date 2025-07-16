@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Clock, Calendar as CalendarIcon, CheckCircle, XCircle, AlertCircle, Plus, Download } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AttendanceTrackingProps {
   employees: any[];
@@ -56,85 +57,248 @@ const AttendanceTracking = ({ employees }: AttendanceTrackingProps) => {
     reason: ''
   });
 
-  // Mock data for demonstration
+  // Load attendance data from database
   useEffect(() => {
-    const mockTimeEntries: TimeEntry[] = employees.map((emp, index) => ({
-      id: `time-${index}`,
-      employeeId: emp.id,
-      employeeName: `${emp.firstName} ${emp.lastName}`,
-      date: new Date(),
-      clockIn: ['08:00', '08:15', '09:00', '08:30'][index % 4],
-      clockOut: ['17:00', '17:15', '18:00', '16:30'][index % 4],
-      totalHours: [8, 8.25, 8, 8][index % 4],
-      status: ['present', 'late', 'present', 'present'][index % 4] as any,
-      notes: index % 3 === 0 ? 'Worked overtime' : undefined
-    }));
+    const loadAttendanceData = async () => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return;
 
-    const mockLeaveRequests: LeaveRequest[] = [
-      {
-        id: 'leave-1',
-        employeeId: employees[0]?.id || '1',
-        employeeName: employees[0] ? `${employees[0].firstName} ${employees[0].lastName}` : 'John Doe',
-        leaveType: 'annual',
-        startDate: new Date(2025, 0, 15),
-        endDate: new Date(2025, 0, 17),
-        days: 3,
-        status: 'pending',
-        reason: 'Family vacation',
-        requestDate: new Date()
-      },
-      {
-        id: 'leave-2',
-        employeeId: employees[1]?.id || '2',
-        employeeName: employees[1] ? `${employees[1].firstName} ${employees[1].lastName}` : 'Jane Smith',
-        leaveType: 'sick',
-        startDate: new Date(2025, 0, 10),
-        endDate: new Date(2025, 0, 12),
-        days: 3,
-        status: 'approved',
-        reason: 'Medical appointment',
-        requestDate: new Date(2024, 11, 28)
+        // Load time entries for today
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const { data: timeEntriesData, error: timeError } = await supabase
+          .from('time_entries')
+          .select(`
+            *,
+            employees(first_name, last_name)
+          `)
+          .eq('date', today)
+          .eq('user_id', user.user.id);
+
+        if (timeError) {
+          console.error('Error loading time entries:', timeError);
+        } else {
+          const transformedTimeEntries: TimeEntry[] = timeEntriesData.map(entry => ({
+            id: entry.id,
+            employeeId: entry.employee_id,
+            employeeName: `${entry.employees.first_name} ${entry.employees.last_name}`,
+            date: new Date(entry.date),
+            clockIn: entry.clock_in || '--:--',
+            clockOut: entry.clock_out || '--:--',
+            totalHours: Number(entry.total_hours) || 0,
+            status: entry.status as 'present' | 'late' | 'absent' | 'partial',
+            notes: entry.notes
+          }));
+
+          // Add entries for employees without time entries today
+          const existingEmployeeIds = new Set(transformedTimeEntries.map(te => te.employeeId));
+          const missingEmployeeEntries: TimeEntry[] = employees
+            .filter(emp => !existingEmployeeIds.has(emp.id))
+            .map(emp => ({
+              id: `temp-${emp.id}`,
+              employeeId: emp.id,
+              employeeName: `${emp.first_name} ${emp.last_name}`,
+              date: new Date(),
+              clockIn: '--:--',
+              clockOut: '--:--',
+              totalHours: 0,
+              status: 'absent' as const,
+              notes: undefined
+            }));
+
+          setTimeEntries([...transformedTimeEntries, ...missingEmployeeEntries]);
+        }
+
+        // Load leave requests
+        const { data: leaveData, error: leaveError } = await supabase
+          .from('leave_requests')
+          .select(`
+            *,
+            employees(first_name, last_name)
+          `)
+          .eq('user_id', user.user.id)
+          .order('created_at', { ascending: false });
+
+        if (leaveError) {
+          console.error('Error loading leave requests:', leaveError);
+        } else {
+          const transformedLeaveRequests: LeaveRequest[] = leaveData.map(request => ({
+            id: request.id,
+            employeeId: request.employee_id,
+            employeeName: `${request.employees.first_name} ${request.employees.last_name}`,
+            leaveType: request.leave_type as 'annual' | 'sick' | 'personal' | 'maternity' | 'emergency',
+            startDate: new Date(request.start_date),
+            endDate: new Date(request.end_date),
+            days: request.days,
+            status: request.status as 'pending' | 'approved' | 'rejected',
+            reason: request.reason,
+            requestDate: new Date(request.request_date)
+          }));
+
+          setLeaveRequests(transformedLeaveRequests);
+        }
+      } catch (error) {
+        console.error('Error loading attendance data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load attendance data",
+          variant: "destructive"
+        });
       }
-    ];
+    };
 
-    setTimeEntries(mockTimeEntries);
-    setLeaveRequests(mockLeaveRequests);
+    if (employees.length > 0) {
+      loadAttendanceData();
+    }
   }, [employees]);
 
-  const handleClockIn = (employeeId: string) => {
-    const now = new Date();
-    const timeString = format(now, 'HH:mm');
-    
-    setTimeEntries(prev => prev.map(entry => 
-      entry.employeeId === employeeId 
-        ? { ...entry, clockIn: timeString, status: 'present' as const }
-        : entry
-    ));
-    
-    toast({
-      title: "Clocked In",
-      description: `Employee clocked in at ${timeString}`,
-    });
+  const handleClockIn = async (employeeId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const now = new Date();
+      const timeString = format(now, 'HH:mm');
+      const today = format(now, 'yyyy-MM-dd');
+      
+      // Check if entry exists for today
+      const { data: existingEntry } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .eq('date', today)
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (existingEntry) {
+        // Update existing entry
+        const { error } = await supabase
+          .from('time_entries')
+          .update({
+            clock_in: timeString,
+            status: 'present'
+          })
+          .eq('id', existingEntry.id);
+
+        if (error) {
+          console.error('Error updating clock in:', error);
+          toast({
+            title: "Error",
+            description: "Failed to clock in",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        // Create new entry
+        const { error } = await supabase
+          .from('time_entries')
+          .insert({
+            employee_id: employeeId,
+            date: today,
+            clock_in: timeString,
+            status: 'present',
+            user_id: user.user.id
+          });
+
+        if (error) {
+          console.error('Error creating time entry:', error);
+          toast({
+            title: "Error",
+            description: "Failed to clock in",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
+      // Update local state
+      setTimeEntries(prev => prev.map(entry => 
+        entry.employeeId === employeeId 
+          ? { ...entry, clockIn: timeString, status: 'present' as const }
+          : entry
+      ));
+      
+      toast({
+        title: "Clocked In",
+        description: `Employee clocked in at ${timeString}`,
+      });
+    } catch (error) {
+      console.error('Error clocking in:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clock in",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleClockOut = (employeeId: string) => {
-    const now = new Date();
-    const timeString = format(now, 'HH:mm');
-    
-    setTimeEntries(prev => prev.map(entry => 
-      entry.employeeId === employeeId 
-        ? { 
-            ...entry, 
-            clockOut: timeString,
-            totalHours: calculateHours(entry.clockIn, timeString)
-          }
-        : entry
-    ));
-    
-    toast({
-      title: "Clocked Out",
-      description: `Employee clocked out at ${timeString}`,
-    });
+  const handleClockOut = async (employeeId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const now = new Date();
+      const timeString = format(now, 'HH:mm');
+      const today = format(now, 'yyyy-MM-dd');
+      
+      // Find the existing entry
+      const currentEntry = timeEntries.find(entry => entry.employeeId === employeeId);
+      if (!currentEntry || currentEntry.clockIn === '--:--') {
+        toast({
+          title: "Error",
+          description: "Employee must clock in first",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const totalHours = calculateHours(currentEntry.clockIn, timeString);
+
+      // Update the time entry in database
+      const { error } = await supabase
+        .from('time_entries')
+        .update({
+          clock_out: timeString,
+          total_hours: totalHours
+        })
+        .eq('employee_id', employeeId)
+        .eq('date', today)
+        .eq('user_id', user.user.id);
+
+      if (error) {
+        console.error('Error updating clock out:', error);
+        toast({
+          title: "Error",
+          description: "Failed to clock out",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Update local state
+      setTimeEntries(prev => prev.map(entry => 
+        entry.employeeId === employeeId 
+          ? { 
+              ...entry, 
+              clockOut: timeString,
+              totalHours
+            }
+          : entry
+      ));
+      
+      toast({
+        title: "Clocked Out",
+        description: `Employee clocked out at ${timeString}`,
+      });
+    } catch (error) {
+      console.error('Error clocking out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to clock out",
+        variant: "destructive"
+      });
+    }
   };
 
   const calculateHours = (clockIn: string, clockOut: string): number => {
@@ -147,7 +311,7 @@ const AttendanceTracking = ({ employees }: AttendanceTrackingProps) => {
     return Math.round(((outMinutes - inMinutes) / 60) * 100) / 100;
   };
 
-  const handleLeaveRequest = () => {
+  const handleLeaveRequest = async () => {
     if (!newLeaveRequest.employeeId || !newLeaveRequest.leaveType || !newLeaveRequest.reason) {
       toast({
         title: "Error",
@@ -157,46 +321,114 @@ const AttendanceTracking = ({ employees }: AttendanceTrackingProps) => {
       return;
     }
 
-    const employee = employees.find(emp => emp.id === newLeaveRequest.employeeId);
-    const days = Math.ceil((newLeaveRequest.endDate.getTime() - newLeaveRequest.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    
-    const request: LeaveRequest = {
-      id: `leave-${Date.now()}`,
-      employeeId: newLeaveRequest.employeeId,
-      employeeName: employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown',
-      leaveType: newLeaveRequest.leaveType as any,
-      startDate: newLeaveRequest.startDate,
-      endDate: newLeaveRequest.endDate,
-      days,
-      status: 'pending',
-      reason: newLeaveRequest.reason,
-      requestDate: new Date()
-    };
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
 
-    setLeaveRequests(prev => [request, ...prev]);
-    setNewLeaveRequest({
-      employeeId: '',
-      leaveType: '',
-      startDate: new Date(),
-      endDate: new Date(),
-      reason: ''
-    });
+      const employee = employees.find(emp => emp.id === newLeaveRequest.employeeId);
+      const days = Math.ceil((newLeaveRequest.endDate.getTime() - newLeaveRequest.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      
+      const { data, error } = await supabase
+        .from('leave_requests')
+        .insert({
+          employee_id: newLeaveRequest.employeeId,
+          leave_type: newLeaveRequest.leaveType,
+          start_date: format(newLeaveRequest.startDate, 'yyyy-MM-dd'),
+          end_date: format(newLeaveRequest.endDate, 'yyyy-MM-dd'),
+          days,
+          reason: newLeaveRequest.reason,
+          user_id: user.user.id
+        })
+        .select()
+        .single();
 
-    toast({
-      title: "Leave Request Submitted",
-      description: "The leave request has been submitted for approval",
-    });
+      if (error) {
+        console.error('Error creating leave request:', error);
+        toast({
+          title: "Error",
+          description: "Failed to submit leave request",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const request: LeaveRequest = {
+        id: data.id,
+        employeeId: newLeaveRequest.employeeId,
+        employeeName: employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown',
+        leaveType: newLeaveRequest.leaveType as any,
+        startDate: newLeaveRequest.startDate,
+        endDate: newLeaveRequest.endDate,
+        days,
+        status: 'pending',
+        reason: newLeaveRequest.reason,
+        requestDate: new Date()
+      };
+
+      setLeaveRequests(prev => [request, ...prev]);
+      setNewLeaveRequest({
+        employeeId: '',
+        leaveType: '',
+        startDate: new Date(),
+        endDate: new Date(),
+        reason: ''
+      });
+
+      toast({
+        title: "Leave Request Submitted",
+        description: "The leave request has been submitted for approval",
+      });
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit leave request",
+        variant: "destructive"
+      });
+    }
   };
 
-  const updateLeaveStatus = (leaveId: string, status: 'approved' | 'rejected') => {
-    setLeaveRequests(prev => prev.map(req => 
-      req.id === leaveId ? { ...req, status } : req
-    ));
+  const updateLeaveStatus = async (leaveId: string, status: 'approved' | 'rejected') => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
 
-    toast({
-      title: `Leave Request ${status}`,
-      description: `The leave request has been ${status}`,
-    });
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status,
+          approved_by: status === 'approved' ? user.user.id : null,
+          approved_at: status === 'approved' ? new Date().toISOString() : null
+        })
+        .eq('id', leaveId)
+        .eq('user_id', user.user.id);
+
+      if (error) {
+        console.error('Error updating leave status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update leave request status",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setLeaveRequests(prev => prev.map(req => 
+        req.id === leaveId ? { ...req, status } : req
+      ));
+
+      toast({
+        title: `Leave Request ${status}`,
+        description: `The leave request has been ${status}`,
+      });
+    } catch (error) {
+      console.error('Error updating leave status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update leave request status",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
