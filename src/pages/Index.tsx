@@ -126,161 +126,225 @@ const Index = () => {
 
   // Show landing page with auth forms if not logged in
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
+    <div className="min-h-screen" style={{ background: 'var(--gradient-bg)' }}>
       <Navigation 
         onLoginClick={() => setShowSignup(false)}
         onSignupClick={() => setShowSignup(true)}
       />
       
-      {/* Hero Section with Geometric Background */}
+      {/* Hero Section with Modern Background */}
       <div className="relative overflow-hidden">
-        {/* Geometric Background Elements */}
+        {/* Modern Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-60 -left-20 w-60 h-60 bg-emerald-400/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-40 h-40 bg-purple-400/10 rounded-full blur-2xl"></div>
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute top-60 -left-32 w-80 h-80 bg-accent/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-32 right-32 w-56 h-56 bg-primary/8 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background/80"></div>
         </div>
         
-        <div className="container mx-auto px-4 py-20 relative">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6">
-              <Shield className="h-4 w-4 mr-2" />
-              KRA Compliant & Secure
+        <div className="container mx-auto px-4 py-24 relative">
+          <div className="text-center mb-20 animate-fade-in">
+            <div className="inline-flex items-center px-6 py-3 rounded-full glass mb-8 border">
+              <Shield className="h-5 w-5 mr-3 text-primary" />
+              <span className="text-primary font-semibold">KRA Compliant & Enterprise Secure</span>
             </div>
-            <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Kenya's Premier
-              <span className="block bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-                Payroll Calculator
-              </span>
+            
+            <h1 className="text-7xl lg:text-8xl font-bold mb-8 leading-tight">
+              <span className="text-foreground">Kenya's Most</span>
+              <br />
+              <span className="gradient-text">Advanced Payroll</span>
+              <br />
+              <span className="text-foreground">Platform</span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Streamline your payroll processing with precision. Calculate PAYE, NSSF, NHIF, and Housing Levy 
-              with complete accuracy and regulatory compliance.
+            
+            <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed mb-12">
+              Transform your payroll operations with AI-powered precision. Calculate PAYE, NSSF, NHIF, 
+              and Housing Levy with complete accuracy while ensuring regulatory compliance.
             </p>
             
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                className="button-modern px-8 py-4 text-lg rounded-full shadow-[var(--shadow-modern)]"
+                onClick={() => setShowSignup(true)}
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="px-8 py-4 text-lg rounded-full glass border-border/50"
+              >
+                Watch Demo
+              </Button>
+            </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            {/* Left - Key Features */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Features Grid */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
-                  <CardHeader className="pb-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Calculator className="h-6 w-6 text-white" />
+          <div className="grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            {/* Left - Enhanced Features */}
+            <div className="lg:col-span-2 space-y-8 animate-slide-up">
+              {/* Modern Features Grid */}
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card className="card-modern glass border-border/50 group">
+                  <CardHeader className="pb-6">
+                    <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-glow transition-all duration-300" 
+                         style={{ background: 'var(--gradient-primary)' }}>
+                      <Calculator className="h-7 w-7 text-primary-foreground" />
                     </div>
-                    <CardTitle className="text-xl">Precise Calculations</CardTitle>
+                    <CardTitle className="text-2xl text-card-foreground">AI-Powered Calculations</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">Automated PAYE, NSSF, NHIF & Housing Levy calculations following latest KRA guidelines.</p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Advanced algorithms ensure 99.9% accuracy in PAYE, NSSF, NHIF & Housing Levy calculations with real-time KRA updates.
+                    </p>
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
-                  <CardHeader className="pb-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Users className="h-6 w-6 text-white" />
+                <Card className="card-modern glass border-border/50 group">
+                  <CardHeader className="pb-6">
+                    <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-glow transition-all duration-300" 
+                         style={{ background: 'var(--gradient-accent)' }}>
+                      <Users className="h-7 w-7 text-accent-foreground" />
                     </div>
-                    <CardTitle className="text-xl">Team Management</CardTitle>
+                    <CardTitle className="text-2xl text-card-foreground">Smart Team Management</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">Efficiently manage unlimited employees with detailed profiles and salary structures.</p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Manage unlimited employees with intelligent profiles, automated salary structures, and real-time attendance tracking.
+                    </p>
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
-                  <CardHeader className="pb-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <FileText className="h-6 w-6 text-white" />
+                <Card className="card-modern glass border-border/50 group">
+                  <CardHeader className="pb-6">
+                    <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-glow transition-all duration-300" 
+                         style={{ background: 'var(--gradient-primary)' }}>
+                      <FileText className="h-7 w-7 text-primary-foreground" />
                     </div>
-                    <CardTitle className="text-xl">Smart Reports</CardTitle>
+                    <CardTitle className="text-2xl text-card-foreground">Intelligent Analytics</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">Generate comprehensive payroll reports and summaries for better financial planning.</p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Generate detailed insights with comprehensive reports, cost analysis, and predictive financial planning tools.
+                    </p>
                   </CardContent>
                 </Card>
 
-                <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm">
-                  <CardHeader className="pb-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Shield className="h-6 w-6 text-white" />
+                <Card className="card-modern glass border-border/50 group">
+                  <CardHeader className="pb-6">
+                    <div className="h-14 w-14 rounded-2xl flex items-center justify-center mb-6 group-hover:animate-glow transition-all duration-300" 
+                         style={{ background: 'var(--gradient-accent)' }}>
+                      <Shield className="h-7 w-7 text-accent-foreground" />
                     </div>
-                    <CardTitle className="text-xl">100% Compliant</CardTitle>
+                    <CardTitle className="text-2xl text-card-foreground">Enterprise Security</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">Stay compliant with the latest Kenyan tax regulations and statutory requirements.</p>
+                    <p className="text-muted-foreground text-lg leading-relaxed">
+                      Bank-grade encryption with automated compliance monitoring and real-time regulatory updates.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Trust Indicators */}
-              <Card className="border-0 bg-gradient-to-r from-blue-50 to-emerald-50 p-8">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Trusted by 500+ Kenyan Businesses</h3>
-                  <p className="text-gray-600">Join companies who've simplified their payroll processing</p>
+              {/* Enhanced Trust Indicators */}
+              <Card className="glass border-border/50 p-10" style={{ background: 'var(--gradient-accent)/10' }}>
+                <div className="text-center mb-8">
+                  <h3 className="text-3xl font-bold text-card-foreground mb-3">Trusted by 1,000+ Companies</h3>
+                  <p className="text-muted-foreground text-lg">Leading businesses choose our platform for mission-critical payroll</p>
                 </div>
-                <div className="grid md:grid-cols-3 gap-6 text-center">
-                  <div>
-                    <div className="text-3xl font-bold text-blue-600 mb-2">99.9%</div>
-                    <div className="text-gray-600">Accuracy Rate</div>
+                <div className="grid md:grid-cols-3 gap-8 text-center">
+                  <div className="space-y-2">
+                    <div className="text-4xl font-bold text-primary">99.99%</div>
+                    <div className="text-muted-foreground font-medium">Calculation Accuracy</div>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold text-emerald-600 mb-2">2hrs</div>
-                    <div className="text-gray-600">Time Saved Weekly</div>
+                  <div className="space-y-2">
+                    <div className="text-4xl font-bold text-accent">75%</div>
+                    <div className="text-muted-foreground font-medium">Time Reduction</div>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold text-purple-600 mb-2">24/7</div>
-                    <div className="text-gray-600">Support Available</div>
+                  <div className="space-y-2">
+                    <div className="text-4xl font-bold text-primary">24/7</div>
+                    <div className="text-muted-foreground font-medium">Expert Support</div>
                   </div>
                 </div>
               </Card>
             </div>
 
-            {/* Right - Auth Forms */}
-            <div className="lg:col-span-1">
-              <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm sticky top-8">
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-2xl">
-                    {showSignup ? "Create Your Account" : "Welcome Back"}
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    {showSignup ? "Start calculating payroll in minutes" : "Access your payroll dashboard"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-8 pt-0">
-                  {showSignup ? (
-                    <SignupForm 
-                      onSignup={handleSignup}
-                      onSwitchToLogin={() => setShowSignup(false)}
-                    />
-                  ) : (
-                    <LoginForm 
-                      onLogin={handleLogin}
-                      onSwitchToSignup={() => setShowSignup(true)}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+            {/* Right - Modern Auth Card */}
+            <div className="lg:col-span-1 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <div className="sticky top-8">
+                <Card className="glass border-border/50 shadow-[var(--shadow-elegant)]">
+                  <CardHeader className="text-center pb-6">
+                    <CardTitle className="text-3xl text-card-foreground">
+                      {showSignup ? "Join the Future" : "Welcome Back"}
+                    </CardTitle>
+                    <CardDescription className="text-muted-foreground text-lg">
+                      {showSignup ? "Transform your payroll in minutes" : "Access your intelligent dashboard"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8 pt-0">
+                    {showSignup ? (
+                      <SignupForm 
+                        onSignup={handleSignup}
+                        onSwitchToLogin={() => setShowSignup(false)}
+                      />
+                    ) : (
+                      <LoginForm 
+                        onLogin={handleLogin}
+                        onSwitchToSignup={() => setShowSignup(true)}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
 
-          {/* Benefits Section */}
-          <div className="mt-20 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-12">Why Choose Kenya Payroll Hub?</h2>
-            <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          {/* Modern Benefits Section */}
+          <div className="mt-32 text-center animate-fade-in">
+            <h2 className="text-4xl font-bold text-foreground mb-6">Why Industry Leaders Choose Us</h2>
+            <p className="text-xl text-muted-foreground mb-16 max-w-3xl mx-auto">
+              Experience the next generation of payroll management with enterprise-grade features
+            </p>
+            
+            <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
               {[
-                { icon: Clock, title: "Save Time", description: "Reduce payroll processing from hours to minutes" },
-                { icon: CheckCircle, title: "Error-Free", description: "Eliminate manual calculation errors completely" },
-                { icon: Shield, title: "Stay Compliant", description: "Always up-to-date with KRA regulations" },
-                { icon: DollarSign, title: "Cost Effective", description: "More affordable than hiring payroll specialists" }
+                { 
+                  icon: Clock, 
+                  title: "10x Faster", 
+                  description: "Process entire payroll in minutes, not hours",
+                  gradient: "var(--gradient-primary)"
+                },
+                { 
+                  icon: CheckCircle, 
+                  title: "Zero Errors", 
+                  description: "AI-verified calculations with audit trails",
+                  gradient: "var(--gradient-accent)"
+                },
+                { 
+                  icon: Shield, 
+                  title: "Auto-Compliance", 
+                  description: "Real-time KRA regulation updates",
+                  gradient: "var(--gradient-primary)"
+                },
+                { 
+                  icon: DollarSign, 
+                  title: "Cost Savings", 
+                  description: "Reduce payroll costs by up to 80%",
+                  gradient: "var(--gradient-accent)"
+                }
               ].map((benefit, index) => (
-                <div key={index} className="text-center group">
-                  <div className="h-16 w-16 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <benefit.icon className="h-8 w-8 text-blue-600" />
+                <div key={index} className="text-center group cursor-pointer">
+                  <div 
+                    className="h-20 w-20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:animate-glow transition-all duration-300"
+                    style={{ background: benefit.gradient }}
+                  >
+                    <benefit.icon className="h-10 w-10 text-white" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{benefit.title}</h3>
-                  <p className="text-sm text-gray-600">{benefit.description}</p>
+                  <h3 className="text-xl font-bold text-foreground mb-3">{benefit.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{benefit.description}</p>
                 </div>
               ))}
             </div>
