@@ -30,24 +30,24 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   // If Analytics view is active, show it instead of the main dashboard
   if (showAnalytics) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
+      <div className="min-h-screen" style={{ background: 'var(--gradient-page)' }}>
+        <header className="glass border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4">
-                <Button onClick={() => setShowAnalytics(false)} variant="outline">
+                <Button onClick={() => setShowAnalytics(false)} variant="outline" size="sm">
                   ← Back to Dashboard
                 </Button>
-                <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-foreground">Analytics</h1>
               </div>
-              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+              <Button onClick={onLogout} variant="outline" size="sm" className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </header>
-        <div className="container mx-auto px-1 py-8">
+        <div className="container mx-auto px-4 py-6 md:py-8">
           <Analytics employees={transformedEmployees} />
         </div>
       </div>
@@ -56,24 +56,24 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
 
   if (showAttendance) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
+      <div className="min-h-screen" style={{ background: 'var(--gradient-page)' }}>
+        <header className="glass border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4">
-                <Button onClick={() => setShowAttendance(false)} variant="outline">
+                <Button onClick={() => setShowAttendance(false)} variant="outline" size="sm">
                   ← Back to Dashboard
                 </Button>
-                <h1 className="text-2xl font-bold text-gray-900">Attendance & Time Tracking</h1>
+                <h1 className="text-lg md:text-2xl font-bold text-foreground">Attendance & Time Tracking</h1>
               </div>
-              <Button onClick={onLogout} variant="outline" className="flex items-center gap-2">
+              <Button onClick={onLogout} variant="outline" size="sm" className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </header>
-        <div className="container mx-auto px-1 py-8">
+        <div className="container mx-auto px-4 py-6 md:py-8">
           <AttendanceTracking employees={transformedEmployees} />
         </div>
       </div>
@@ -81,15 +81,15 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--gradient-page)' }}>
       <DashboardHeader user={user} onLogout={onLogout} />
 
-      <div className="container mx-auto px-1 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="employees">Employees</TabsTrigger>
-            <TabsTrigger value="calculator">Calculator</TabsTrigger>
+          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-6">
+            <TabsTrigger value="overview" className="text-xs md:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="employees" className="text-xs md:text-sm">Employees</TabsTrigger>
+            <TabsTrigger value="calculator" className="text-xs md:text-sm">Calculator</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
