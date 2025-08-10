@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import EditEmployeeForm from "./EditEmployeeForm";
 
 interface EmployeeListProps {
@@ -16,6 +18,7 @@ interface EmployeeListProps {
 const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: EmployeeListProps) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleEdit = (employee: any) => {
     setSelectedEmployee(employee);
@@ -82,6 +85,37 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                   </div>
                 </div>
                 <div className="flex gap-2">
+{isMobile ? (
+                  <Sheet open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <SheetTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEdit(employee)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="h-[90svh] p-0">
+                      <div className="h-full flex flex-col">
+                        <div className="p-6 border-b">
+                          <SheetHeader>
+                            <SheetTitle>Edit Employee</SheetTitle>
+                          </SheetHeader>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                          {selectedEmployee && (
+                            <EditEmployeeForm 
+                              employee={selectedEmployee}
+                              onUpdateEmployee={handleUpdate}
+                              onCancel={() => setIsEditDialogOpen(false)}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                ) : (
                   <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
@@ -92,7 +126,7 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                         <Edit className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl max-h-[80svh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Edit Employee</DialogTitle>
                       </DialogHeader>
@@ -105,6 +139,7 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                       )}
                     </DialogContent>
                   </Dialog>
+                )}
                   
                   <Button 
                     variant="outline" 
