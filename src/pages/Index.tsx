@@ -164,23 +164,7 @@ const Index = () => {
               and Housing Levy with complete accuracy while ensuring regulatory compliance.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="button-modern px-8 py-4 text-lg rounded-full shadow-[var(--shadow-modern)]"
-                onClick={() => setShowSignup(true)}
-              >
-                Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="px-8 py-4 text-lg rounded-full glass border-border/50"
-              >
-                Watch Demo
-              </Button>
-            </div>
+            
           </div>
 
           <div className="grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
