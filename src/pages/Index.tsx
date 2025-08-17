@@ -333,6 +333,28 @@ const Index = () => {
               ))}
             </div>
           </div>
+
+          {/* Employee Portal Section */}
+          <div className="mt-32 animate-fade-in">
+            <Card className="glass border-border/50 p-12 text-center max-w-4xl mx-auto" style={{ background: 'var(--gradient-primary)/5' }}>
+              <div className="h-16 w-16 rounded-3xl flex items-center justify-center mx-auto mb-8" 
+                   style={{ background: 'var(--gradient-primary)' }}>
+                <Users className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h2 className="text-3xl font-bold text-card-foreground mb-4">Employee Portal</h2>
+              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                Access your personal dashboard to view salary details, download pay slips, and manage your profile.
+              </p>
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => window.location.href = '/employee-login'}
+              >
+                Employee Login
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
