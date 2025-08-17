@@ -11,6 +11,8 @@ import SignupForm from "@/components/auth/SignupForm";
 import LoginForm from "@/components/auth/LoginForm";
 import { useNavigate } from "react-router-dom";
 
+
+
 const Index = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,8 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+   const navigate = useNavigate(); // ✅ this line was missing
 
   // Clean up URL hash after processing auth tokens
   useEffect(() => {
@@ -346,14 +350,14 @@ const Index = () => {
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 Access your personal dashboard to view salary details, download pay slips, and manage your profile.
               </p>
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => window.location.href = '/employee-login'}
-              >
-                Employee Login
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+               <Button
+      size="lg"
+      className="text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+      onClick={() => navigate("/employee-login")}
+    >
+      Employee Login
+      <ArrowRight className="ml-2 h-5 w-5" />
+    </Button>
             </Card>
           </div>
         </div>
