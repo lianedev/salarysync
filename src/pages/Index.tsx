@@ -9,6 +9,7 @@ import Dashboard from "@/components/Dashboard";
 import Navigation from "@/components/Navigation";
 import SignupForm from "@/components/auth/SignupForm";
 import LoginForm from "@/components/auth/LoginForm";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [user, setUser] = useState(null);
