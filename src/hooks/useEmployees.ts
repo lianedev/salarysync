@@ -31,7 +31,21 @@ export const useEmployees = (user: any) => {
         return;
       }
 
-      setEmployees(data || []);
+      // Transform database data to match component expectations
+      const transformedEmployees = (data || []).map((emp: any) => ({
+        ...emp,
+        firstName: emp.first_name,
+        lastName: emp.last_name,
+        employeeId: emp.employee_id,
+        phoneNumber: emp.phone_number,
+        basicSalary: parseFloat(String(emp.basic_salary || '0')),
+        houseAllowance: parseFloat(String(emp.house_allowance || '0')),
+        transportAllowance: parseFloat(String(emp.transport_allowance || '0')),
+        medicalAllowance: parseFloat(String(emp.medical_allowance || '0')),
+        otherAllowances: parseFloat(String(emp.other_allowances || '0')),
+      }));
+
+      setEmployees(transformedEmployees);
     } catch (error) {
       console.error('Error fetching employees:', error);
       toast({
@@ -78,6 +92,7 @@ export const useEmployees = (user: any) => {
           transport_allowance: employeeData.transportAllowance,
           medical_allowance: employeeData.medicalAllowance,
           other_allowances: employeeData.otherAllowances,
+          password: employeeData.password || 'temp123', // Default password if not provided
         }])
         .select()
         .single();
@@ -137,6 +152,7 @@ export const useEmployees = (user: any) => {
           transport_allowance: updatedEmployee.transportAllowance,
           medical_allowance: updatedEmployee.medicalAllowance,
           other_allowances: updatedEmployee.otherAllowances,
+          password: updatedEmployee.password,
           updated_at: new Date().toISOString(),
         })
         .eq('id', updatedEmployee.id);

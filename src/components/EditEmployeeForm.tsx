@@ -26,6 +26,7 @@ const EditEmployeeForm = ({ employee, onUpdateEmployee, onCancel }: EditEmployee
     transportAllowance: employee.transportAllowance?.toString() || "",
     medicalAllowance: employee.medicalAllowance?.toString() || "",
     otherAllowances: employee.otherAllowances?.toString() || "",
+    password: employee.password || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,6 +122,18 @@ const EditEmployeeForm = ({ employee, onUpdateEmployee, onCancel }: EditEmployee
               value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="Enter phone number"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Employee Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter employee password"
               required
             />
           </div>

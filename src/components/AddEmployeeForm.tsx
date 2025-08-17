@@ -25,6 +25,7 @@ const AddEmployeeForm = ({ onAddEmployee }: AddEmployeeFormProps) => {
     transportAllowance: "",
     medicalAllowance: "",
     otherAllowances: "",
+    password: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ const AddEmployeeForm = ({ onAddEmployee }: AddEmployeeFormProps) => {
       transportAllowance: parseFloat(formData.transportAllowance) || 0,
       medicalAllowance: parseFloat(formData.medicalAllowance) || 0,
       otherAllowances: parseFloat(formData.otherAllowances) || 0,
+      password: formData.password || 'temp123',
     };
 
     onAddEmployee(employee);
@@ -59,6 +61,7 @@ const AddEmployeeForm = ({ onAddEmployee }: AddEmployeeFormProps) => {
       transportAllowance: "",
       medicalAllowance: "",
       otherAllowances: "",
+      password: "",
     });
   };
 
@@ -143,6 +146,18 @@ const AddEmployeeForm = ({ onAddEmployee }: AddEmployeeFormProps) => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   placeholder="Enter phone number"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Employee Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter employee password"
                   required
                 />
               </div>

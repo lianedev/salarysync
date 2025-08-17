@@ -65,7 +65,7 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                     <h3 className="text-lg font-semibold">{employee.firstName} {employee.lastName}</h3>
                     <Badge variant="secondary">{employee.department}</Badge>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Employee ID:</span>
                       <p className="font-medium">{employee.employeeId}</p>
@@ -81,6 +81,16 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
                     <div>
                       <span className="text-gray-500">Email:</span>
                       <p className="font-medium">{employee.email}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Password:</span>
+                      <p className="font-medium font-mono">
+                        {employee.password ? '••••••••' : 'Not Set'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Phone:</span>
+                      <p className="font-medium">{employee.phoneNumber}</p>
                     </div>
                   </div>
                 </div>
