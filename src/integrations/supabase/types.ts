@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
@@ -57,6 +57,7 @@ export type Database = {
           last_name: string
           medical_allowance: number
           other_allowances: number
+          password: string | null
           phone_number: string
           position: string
           transport_allowance: number
@@ -75,6 +76,7 @@ export type Database = {
           last_name: string
           medical_allowance?: number
           other_allowances?: number
+          password?: string | null
           phone_number: string
           position: string
           transport_allowance?: number
@@ -93,6 +95,7 @@ export type Database = {
           last_name?: string
           medical_allowance?: number
           other_allowances?: number
+          password?: string | null
           phone_number?: string
           position?: string
           transport_allowance?: number
@@ -215,7 +218,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      authenticate_employee: {
+        Args: { emp_id: string; emp_password: string }
+        Returns: {
+          employee_data: Json
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
