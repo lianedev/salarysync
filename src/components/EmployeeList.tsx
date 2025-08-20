@@ -3,19 +3,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import EditEmployeeForm from "./EditEmployeeForm";
+import AddEmployeeModal from "./AddEmployeeModal";
 
 interface EmployeeListProps {
   employees: any[];
   onUpdateEmployee: (employee: any) => void;
   onDeleteEmployee: (employeeId: string) => void;
+  onAddEmployee: (employeeData: any) => void;
 }
 
-const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: EmployeeListProps) => {
+const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee, onAddEmployee }: EmployeeListProps) => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -40,6 +42,9 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
             You haven't added any employees yet. Click "Add Employee" to get started.
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <AddEmployeeModal onAddEmployee={onAddEmployee} />
+        </CardContent>
       </Card>
     );
   }
@@ -48,10 +53,15 @@ const EmployeeList = ({ employees, onUpdateEmployee, onDeleteEmployee }: Employe
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Employee List ({employees.length})</CardTitle>
-          <CardDescription>
-            Manage your employees and their details
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>Employee List ({employees.length})</CardTitle>
+              <CardDescription>
+                Manage your employees and their details
+              </CardDescription>
+            </div>
+            <AddEmployeeModal onAddEmployee={onAddEmployee} />
+          </div>
         </CardHeader>
       </Card>
 

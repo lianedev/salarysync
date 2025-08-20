@@ -1,19 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, BarChart3, Clock } from "lucide-react";
-import AddEmployeeModal from "../AddEmployeeModal";
+import { BarChart3, Clock } from "lucide-react";
 
 interface QuickActionsCardProps {
-  onAddEmployee: (employeeData: any) => void;
-  onCalculatePayroll: () => void;
   onViewAnalytics: () => void;
   onTrackAttendance: () => void;
 }
 
 const QuickActionsCard = ({ 
-  onAddEmployee, 
-   
   onViewAnalytics, 
   onTrackAttendance 
 }: QuickActionsCardProps) => {
@@ -26,8 +21,6 @@ const QuickActionsCard = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col sm:flex-row gap-2">
-        <AddEmployeeModal onAddEmployee={onAddEmployee} />
-        
         <Button onClick={onViewAnalytics} variant="outline" className="flex items-center gap-1 w-full sm:w-auto">
           <BarChart3 className="p-0.5" />
           View Analytics

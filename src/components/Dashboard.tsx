@@ -99,8 +99,6 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
             />
 
             <QuickActionsCard
-              onAddEmployee={addEmployee}
-              onCalculatePayroll={() => setActiveTab("calculator")}
               onViewAnalytics={() => setShowAnalytics(true)}
               onTrackAttendance={() => setShowAttendance(true)}
             />
@@ -118,6 +116,7 @@ const Dashboard = ({ user, onLogout }: DashboardProps) => {
                 employees={transformedEmployees}
                 onUpdateEmployee={updateEmployee}
                 onDeleteEmployee={deleteEmployee}
+                onAddEmployee={addEmployee}
               />
             )}
           </TabsContent>
