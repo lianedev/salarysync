@@ -224,6 +224,14 @@ export type Database = {
           employee_data: Json
         }[]
       }
+      hash_password: {
+        Args: { password_text: string }
+        Returns: string
+      }
+      verify_password: {
+        Args: { hashed_password: string; password_text: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
