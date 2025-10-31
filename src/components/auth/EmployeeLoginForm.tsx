@@ -19,31 +19,30 @@ const EmployeeLoginForm = ({ onLogin }: EmployeeLoginFormProps) => {
     setLoading(true);
 
     try {
-      console.log("Attempting employee login for:", employeeId);
-      
       // Call the database function to authenticate employee
       const { data, error } = await supabase.rpc('authenticate_employee', {
         emp_id: employeeId,
         emp_password: password
       });
 
-      console.log("Employee login response:", { data, error });
-
       if (error) {
-        console.error("Employee login error:", error);
         toast({
           title: "Login Failed",
           description: "Invalid employee ID or password",
           variant: "destructive",
         });
       } else if (data && data.length > 0) {
-        const employeeData = data[0].employee_data;
-        const employee = typeof employeeData === 'string' ? JSON.parse(employeeData) : employeeData;
-        console.log("Employee login successful:", employee);
-        onLogin(employee);
+        const result = data[0];
+        const token = result.token;
+        const employeeData = typeof result.employee_data === 'string' 
+          ? JSON.parse(result.employee_data) 
+          : result.employee_data;
+        
+        // Pass both token and employee data to parent
+        onLogin({ token, employee: employeeData });
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${employee.first_name}!`,
+          description: `Welcome back, ${employeeData.first_name}!`,
         });
       } else {
         toast({
@@ -53,7 +52,6 @@ const EmployeeLoginForm = ({ onLogin }: EmployeeLoginFormProps) => {
         });
       }
     } catch (error: any) {
-      console.error("Unexpected employee login error:", error);
       toast({
         title: "Login Failed",
         description: "An unexpected error occurred. Please try again.",

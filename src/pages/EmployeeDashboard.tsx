@@ -5,23 +5,62 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, User, Clock, Calendar, DollarSign } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const EmployeeDashboard = () => {
   const navigate = useNavigate();
   const [employee, setEmployee] = useState<any>(null);
 
   useEffect(() => {
-    // Check if employee is logged in
-    const savedEmployee = localStorage.getItem('employee_session');
-    if (savedEmployee) {
-      setEmployee(JSON.parse(savedEmployee));
-    } else {
-      navigate('/employee-login');
-    }
+    // Validate token and fetch employee data
+    const validateSession = async () => {
+      const token = localStorage.getItem('employee_token');
+      if (!token) {
+        navigate('/employee-login');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('validate_employee_token', {
+          session_token: token
+        });
+
+        if (error || !data || data.length === 0) {
+          // Invalid or expired token
+          localStorage.removeItem('employee_token');
+          toast({
+            title: "Session Expired",
+            description: "Please log in again.",
+            variant: "destructive",
+          });
+          navigate('/employee-login');
+          return;
+        }
+
+        const employeeData = typeof data[0].employee_data === 'string'
+          ? JSON.parse(data[0].employee_data)
+          : data[0].employee_data;
+        
+        setEmployee(employeeData);
+      } catch (error) {
+        localStorage.removeItem('employee_token');
+        navigate('/employee-login');
+      }
+    };
+
+    validateSession();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('employee_session');
+  const handleLogout = async () => {
+    const token = localStorage.getItem('employee_token');
+    if (token) {
+      // Invalidate token on server
+      await supabase.rpc('logout_employee_token', {
+        session_token: token
+      });
+    }
+    
+    localStorage.removeItem('employee_token');
     setEmployee(null);
     toast({
       title: "Logged Out",

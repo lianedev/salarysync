@@ -31,15 +31,74 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { email, type }: SendOTPRequest = await req.json();
-    console.log(`Sending OTP email to: ${email}, type: ${type}`);
 
     if (!email) {
       throw new Error('Email is required');
     }
 
+    // Rate limiting: 5 requests per hour per email
+    const RATE_LIMIT = 5;
+    const RATE_WINDOW_HOURS = 1;
+    const identifier = email.toLowerCase().trim();
+
+    // Check current rate limit status
+    const { data: rateLimitData, error: rateLimitError } = await supabase
+      .from('otp_rate_limits')
+      .select('*')
+      .eq('identifier', identifier)
+      .maybeSingle();
+
+    if (rateLimitError && rateLimitError.code !== 'PGRST116') {
+      console.error('Rate limit check error:', rateLimitError);
+      throw new Error('Rate limit check failed');
+    }
+
+    const now = new Date();
+    
+    if (rateLimitData) {
+      const windowStart = new Date(rateLimitData.window_start);
+      const hoursSinceWindowStart = (now.getTime() - windowStart.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceWindowStart < RATE_WINDOW_HOURS) {
+        // Within rate limit window
+        if (rateLimitData.request_count >= RATE_LIMIT) {
+          const minutesRemaining = Math.ceil((RATE_WINDOW_HOURS * 60) - (hoursSinceWindowStart * 60));
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: `Rate limit exceeded. Please try again in ${minutesRemaining} minutes.` 
+            }),
+            {
+              status: 429,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+          );
+        }
+        
+        // Increment counter
+        await supabase
+          .from('otp_rate_limits')
+          .update({ request_count: rateLimitData.request_count + 1 })
+          .eq('identifier', identifier);
+      } else {
+        // Window expired, reset counter
+        await supabase
+          .from('otp_rate_limits')
+          .update({ 
+            request_count: 1, 
+            window_start: now.toISOString() 
+          })
+          .eq('identifier', identifier);
+      }
+    } else {
+      // First request, create new rate limit entry
+      await supabase
+        .from('otp_rate_limits')
+        .insert({ identifier, request_count: 1, window_start: now.toISOString() });
+    }
+
     // Generate 6-digit OTP
     const otpCode = generateOTP();
-    console.log(`Generated OTP: ${otpCode} for email: ${email}`);
 
     // Store OTP in database
     const { data: otpData, error: otpError } = await supabase

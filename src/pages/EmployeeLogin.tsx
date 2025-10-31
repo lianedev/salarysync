@@ -10,18 +10,16 @@ const EmployeeLogin = () => {
   const [employee, setEmployee] = useState(null);
 
   useEffect(() => {
-    // Check if employee is already logged in
-    const savedEmployee = localStorage.getItem('employee_session');
-    if (savedEmployee) {
-      setEmployee(JSON.parse(savedEmployee));
+    // Check if employee token exists
+    const savedToken = localStorage.getItem('employee_token');
+    if (savedToken) {
       navigate('/employee-dashboard');
     }
   }, [navigate]);
 
-  const handleEmployeeLogin = (employeeData: any) => {
-    setEmployee(employeeData);
-    // Store employee session in localStorage
-    localStorage.setItem('employee_session', JSON.stringify(employeeData));
+  const handleEmployeeLogin = (loginData: any) => {
+    // Store only the secure token, not employee data
+    localStorage.setItem('employee_token', loginData.token);
     // Navigate to employee dashboard
     navigate('/employee-dashboard');
   };
