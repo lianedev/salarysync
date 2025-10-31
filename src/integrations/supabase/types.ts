@@ -44,6 +44,41 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_sessions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          expires_at: string
+          id: string
+          last_accessed: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          expires_at: string
+          id?: string
+          last_accessed?: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          expires_at?: string
+          id?: string
+          last_accessed?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           basic_salary: number
@@ -163,6 +198,30 @@ export type Database = {
           },
         ]
       }
+      otp_rate_limits: {
+        Row: {
+          created_at: string
+          id: string
+          identifier: string
+          request_count: number
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          identifier: string
+          request_count?: number
+          window_start?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          identifier?: string
+          request_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       time_entries: {
         Row: {
           clock_in: string | null
@@ -222,11 +281,20 @@ export type Database = {
         Args: { emp_id: string; emp_password: string }
         Returns: {
           employee_data: Json
+          token: string
         }[]
       }
-      hash_password: {
-        Args: { password_text: string }
-        Returns: string
+      generate_employee_token: { Args: never; Returns: string }
+      hash_password: { Args: { password_text: string }; Returns: string }
+      logout_employee_token: {
+        Args: { session_token: string }
+        Returns: boolean
+      }
+      validate_employee_token: {
+        Args: { session_token: string }
+        Returns: {
+          employee_data: Json
+        }[]
       }
       verify_password: {
         Args: { hashed_password: string; password_text: string }
