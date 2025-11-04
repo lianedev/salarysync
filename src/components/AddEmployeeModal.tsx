@@ -22,6 +22,7 @@ const AddEmployeeModal = ({ onAddEmployee }: AddEmployeeModalProps) => {
     phoneNumber: "",
     position: "",
     department: "",
+    password: "",
     basicSalary: "",
     houseAllowance: "",
     transportAllowance: "",
@@ -37,6 +38,16 @@ const AddEmployeeModal = ({ onAddEmployee }: AddEmployeeModalProps) => {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password
+    if (!formData.password) {
+      toast({
+        title: "Error",
+        description: "Please set an initial password for the employee.",
         variant: "destructive",
       });
       return;
@@ -63,6 +74,7 @@ const AddEmployeeModal = ({ onAddEmployee }: AddEmployeeModalProps) => {
       phoneNumber: "",
       position: "",
       department: "",
+      password: "",
       basicSalary: "",
       houseAllowance: "",
       transportAllowance: "",
@@ -168,6 +180,21 @@ const AddEmployeeModal = ({ onAddEmployee }: AddEmployeeModalProps) => {
               onChange={(e) => handleInputChange("department", e.target.value)}
               placeholder="Enter department"
             />
+          </div>
+
+          <div>
+            <Label htmlFor="password">Initial Password *</Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange("password", e.target.value)}
+              placeholder="Set employee's initial password"
+              required
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              Employee will use this password to login
+            </p>
           </div>
 
           <div className="space-y-4">
